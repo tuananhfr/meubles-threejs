@@ -1,0 +1,12 @@
+.configuration-panel {
+  padding: 20px;
+  border-right: 1px solid #eee;
+}
+
+.preview-panel {
+  background-color: #f8f8f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 600px;
+}

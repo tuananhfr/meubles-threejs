@@ -1,0 +1,96 @@
+/* Dimension Control */
+.dimension-control {
+  margin-bottom: 20px;
+}
+
+.dimension-slider {
+  width: 100%;
+  padding: 10px 0;
+}
+
+/* Option Buttons */
+.option-button {
+  border-radius: 20px;
+  padding: 6px 15px;
+  margin-right: 8px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  background-color: white;
+}
+
+.option-button.active {
+  border: 1px solid #00a8a8;
+  background-color: white;
+  color: #00a8a8;
+}
+
+/* Option Section */
+.option-section {
+  padding: 15px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.option-title {
+  font-weight: normal;
+  color: #333;
+}
+
+.action-link {
+  color: #00a8a8;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.info-icon {
+  color: #ccc;
+  font-size: 14px;
+  cursor: help;
+}
+
+/* Selector Buttons */
+.selector-buttons {
+  display: flex;
+  margin-top: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+
+.selector-button {
+  border: 1px solid #ccc;
+  padding: 6px 15px;
+  border-radius: 25px;
+  margin-right: 10px;
+  font-size: 14px;
+  background-color: white;
+}
+
+.selector-button.active {
+  background-color: #f0f0f0;
+}
+
+/* Price Section */
+.price-section {
+  padding: 15px 0;
+}
+
+.old-price {
+  text-decoration: line-through;
+  color: #999;
+  font-size: 16px;
+}
+
+.current-price {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+.price-info {
+  font-size: 12px;
+  color: #999;
+}
+
+/* Action Buttons */
+.action-buttons {
+  margin-top: 20px;
+}
