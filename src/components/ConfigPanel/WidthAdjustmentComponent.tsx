@@ -18,21 +18,6 @@ const WidthtAdjustmentComponent: React.FC = () => {
     }
   }, [columnInfo, config.columnHeights, config.height]);
 
-  const handleHeightChange = (newHeight: number) => {
-    // Cập nhật state nội bộ trước để UI phản hồi ngay lập tức
-    setEditingHeight(newHeight);
-
-    if (columnInfo && columnInfo.index !== undefined) {
-      // Cập nhật trực tiếp
-      const colIndex = columnInfo.index;
-      const newColumnHeights = { ...config.columnHeights };
-      newColumnHeights[colIndex] = newHeight;
-
-      // Gọi updateConfig với đối tượng columnHeights mới
-      updateConfig("columnHeights", newColumnHeights);
-    }
-  };
-
   const handleApply = () => {
     updateConfig("editColumns", {
       ...config.editColumns,

@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import ConfigPanel from "./components/ConfigPanel/ConfigPanel";
 import PreviewPanel from "./components/PreviewPanel/PreviewPanel";
 import "./css/App.css";
