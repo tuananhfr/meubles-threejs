@@ -1,170 +1,320 @@
 import { useRef } from "react";
 import * as THREE from "three";
+import { TextureLoader } from "three";
+
 import { useConfig } from "../../context/ConfigContext";
 import LineWithLabel from "../LineWithLabel";
 import ColumnHighlights from "./ColumnHighlights";
-
+import { useLoader } from "@react-three/fiber";
+import textureUrl from "../../../assets/images/samples-oak-wood-effect-800x800.jpg";
 interface ShelfModelProps {
   showMeasurements?: boolean;
 }
 
+/**
+ * Kệ sách có thể tùy chỉnh số hàng, cột và kích thước từng cột
+ */
 const ShelfModel: React.FC<ShelfModelProps> = ({
   showMeasurements = false,
 }) => {
   const { config } = useConfig();
-  const meshRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
+  // Convert dimensions from cm to 3D units
 
-  // Tính toán kích thước kệ dựa vào config
-  const width = config.width / 100; // Chuyển từ cm sang đơn vị 3D
   const height = config.height / 100;
   const depth = config.depth / 100;
+  const thickness = config.thickness / 100;
 
-  // Độ dày của vách ngăn
-  const thickness = config.thickness / 100; // Chuyển từ cm sang đơn vị 3D
-
-  // Số cột và số hàng
+  // Lấy số cột và số hàng từ config
   const columns = config.columns;
-  const rows = Math.max(1, Math.round((height - thickness) / 0.38));
+  const rows = config.rows;
 
-  // Tạo màu dựa trên loại kệ
-  const shelfColor = "#d4be8d"; // Màu gỗ tự nhiên
-  const hasBackPanel = config.position === "Suspendu"; // Chỉ có kệ sau nếu là "Suspendu"
+  // Chuyển đổi cellWidth và cellHeight sang đơn vị 3D
+  const cellWidth = config.cellWidth / 100;
+  const cellHeight = config.cellHeight / 100;
 
-  // THÊM MỚI: Hàm để lấy chiều cao cho mỗi cột
+  // Màu sắc kệ
+  const texture = useLoader(TextureLoader, textureUrl);
+
+  const hasBackPanel = config.position === "Suspendu";
+
+  // Tính toán chiều cao chuẩn dựa trên số hàng, cellHeight và thickness
+  const standardHeight = rows * cellHeight + (rows + 1) * thickness;
+
+  // Vị trí đáy của kệ (cố định cho mọi cột)
+  const shelfBottomY = -standardHeight / 2;
+
+  // Tính toán tổng chiều rộng thực tế của tất cả các cột
+  const calculateTotalWidth = () => {
+    let totalWidth = 0;
+    for (let i = 0; i < columns; i++) {
+      totalWidth += getColumnWidth(i);
+    }
+    // Cộng thêm (columns + 1) lần thickness cho các vách ngăn dọc
+    totalWidth += (columns + 1) * thickness;
+    return totalWidth;
+  };
+
+  // Helper function để lấy chiều cao thực tế của mỗi cột
   const getColumnHeight = (colIndex: number) => {
-    // Nếu có chiều cao riêng cho cột này, sử dụng nó
     if (config.columnHeights && config.columnHeights[colIndex] !== undefined) {
       return config.columnHeights[colIndex] / 100; // Chuyển từ cm sang đơn vị 3D
     }
-    // Nếu không, sử dụng chiều cao chung
-    return height;
+    return standardHeight;
   };
 
-  // THÊM MỚI: Tính chiều rộng thực của mỗi ô
-  const totalWallWidth = thickness * (columns + 1);
-  const defaultCellWidth = (width - totalWallWidth) / columns;
-
-  // THÊM MỚI: Hàm để lấy chiều rộng cho mỗi cột
+  // Helper function để lấy chiều rộng thực tế của mỗi cột
   const getColumnWidth = (colIndex: number) => {
-    // Nếu có chiều rộng riêng cho cột này, sử dụng nó
     if (config.columnWidths && config.columnWidths[colIndex] !== undefined) {
       return config.columnWidths[colIndex] / 100; // Chuyển từ cm sang đơn vị 3D
     }
-    // Nếu không, sử dụng chiều rộng mặc định
-    return defaultCellWidth;
+    return cellWidth;
   };
 
-  // THÊM MỚI: Tính vị trí X cho các vách ngăn dọc
-  const getVerticalWallPositions = () => {
-    const positions = [];
-    let currentX = -width / 2 + thickness; // Bắt đầu sau vách trái
+  // Helper function để tính vị trí X của mỗi cột
+  const getColumnXPosition = (colIndex: number) => {
+    // Tính tổng chiều rộng thực tế của kệ
+    const totalWidth = calculateTotalWidth();
 
-    for (let i = 0; i < columns - 1; i++) {
-      // Thêm vị trí vách sau mỗi cột
-      currentX += getColumnWidth(i);
-      positions.push(currentX);
-      currentX += thickness; // Thêm độ dày vách
+    // Vị trí bắt đầu của kệ (căn giữa)
+    const startX = -totalWidth / 2;
+
+    // Tính vị trí X của cột dựa trên độ dịch từ điểm bắt đầu
+    let positionX = startX;
+    for (let i = 0; i < colIndex; i++) {
+      positionX += getColumnWidth(i) + thickness;
     }
 
-    return positions;
+    return positionX;
   };
 
-  const verticalWallPositions = getVerticalWallPositions();
+  // 1. Vẽ khung ngoài và các vách đặc biệt cho từng cột
+  const renderOuterFrame = () => {
+    const frames = [];
+
+    // Tính tổng chiều rộng thực tế
+    const totalWidth = calculateTotalWidth();
+
+    // Vị trí bắt đầu của kệ (căn giữa)
+    const startX = -totalWidth / 2;
+
+    // Vẽ các thành phần cho từng cột
+    for (let col = 0; col < columns; col++) {
+      const colWidth = getColumnWidth(col);
+      const colHeight = getColumnHeight(col);
+
+      // Tính vị trí X của cột hiện tại
+      const colX = getColumnXPosition(col);
+      const centerX = colX + colWidth / 2 + thickness / 2;
+
+      // Vách trái (chỉ vẽ cho cột đầu tiên)
+      if (col === 0) {
+        frames.push(
+          <mesh
+            key="left-wall"
+            position={[startX + thickness / 2, shelfBottomY + colHeight / 2, 0]}
+          >
+            <boxGeometry args={[thickness, colHeight, depth]} />
+            <meshStandardMaterial
+              map={texture}
+              roughness={0.7}
+              metalness={0.1}
+            />
+          </mesh>
+        );
+      }
+
+      // Vách phải (chỉ vẽ cho cột cuối cùng)
+      if (col === columns - 1) {
+        frames.push(
+          <mesh
+            key="right-wall"
+            position={[
+              colX + colWidth + thickness / 2,
+              shelfBottomY + colHeight / 2,
+              0,
+            ]}
+          >
+            <boxGeometry args={[thickness, colHeight, depth]} />
+            <meshStandardMaterial
+              map={texture}
+              roughness={0.7}
+              metalness={0.1}
+            />
+          </mesh>
+        );
+      }
+
+      // Vách trên cho cột này
+      frames.push(
+        <mesh
+          key={`top-wall-${col}`}
+          position={[centerX, shelfBottomY + colHeight - thickness / 2, 0]}
+        >
+          <boxGeometry args={[colWidth + thickness, thickness, depth]} />
+          <meshStandardMaterial map={texture} roughness={0.7} metalness={0.1} />
+        </mesh>
+      );
+
+      // Vách đáy cho cột này (luôn ở vị trí cố định)
+      frames.push(
+        <mesh
+          key={`bottom-wall-${col}`}
+          position={[centerX, shelfBottomY + thickness / 2, 0]}
+        >
+          <boxGeometry args={[colWidth + thickness, thickness, depth]} />
+          <meshStandardMaterial map={texture} roughness={0.7} metalness={0.1} />
+        </mesh>
+      );
+
+      // Vách sau cho cột này nếu cần
+      if (hasBackPanel) {
+        frames.push(
+          <mesh
+            key={`back-wall-${col}`}
+            position={[
+              centerX,
+              shelfBottomY + colHeight / 2,
+              -depth / 2 + thickness / 2,
+            ]}
+          >
+            <boxGeometry args={[colWidth + thickness, colHeight, thickness]} />
+            <meshStandardMaterial
+              map={texture}
+              roughness={0.7}
+              metalness={0.1}
+            />
+          </mesh>
+        );
+      }
+    }
+
+    return frames;
+  };
+
+  // 2. Vẽ các vách ngăn dọc bên trong
+  const renderVerticalDividers = () => {
+    const dividers = [];
+
+    // Vẽ vách ngăn dọc giữa các cột
+    for (let col = 1; col < columns; col++) {
+      const prevColHeight = getColumnHeight(col - 1);
+      const currentColHeight = getColumnHeight(col);
+
+      // Lấy chiều cao lớn nhất để vẽ vách ngăn
+      const dividerHeight = Math.max(prevColHeight, currentColHeight);
+
+      // Tính vị trí X dựa trên chiều rộng thực tế của các cột trước đó
+      const dividerX = getColumnXPosition(col);
+
+      // Thêm vách ngăn dọc
+      dividers.push(
+        <mesh
+          key={`vertical-divider-${col}`}
+          position={[dividerX, shelfBottomY + dividerHeight / 2, 0]}
+        >
+          <boxGeometry args={[thickness, dividerHeight, depth]} />
+          <meshStandardMaterial map={texture} roughness={0.7} metalness={0.1} />
+        </mesh>
+      );
+    }
+
+    return dividers;
+  };
+
+  // 3. Vẽ các kệ ngang bên trong từng cột
+  const renderHorizontalShelves = () => {
+    const shelves = [];
+
+    // Vẽ kệ ngang cho từng cột
+    for (let col = 0; col < columns; col++) {
+      const colWidth = getColumnWidth(col);
+      const colHeight = getColumnHeight(col);
+      const colX = getColumnXPosition(col);
+      const centerX = colX + colWidth / 2 + thickness / 2;
+
+      // Khoảng cách giữa các kệ ngang
+      const shelfSpacing = cellHeight + thickness;
+
+      // Tính số hàng thực tế dựa trên chiều cao của cột
+      // Đảm bảo có đủ chỗ cho các kệ ngang và các ô 36cm
+      const actualRows = Math.max(
+        1,
+        Math.floor((colHeight - 2 * thickness) / shelfSpacing) + 1
+      );
+
+      // Vẽ kệ ngang ở giữa (bỏ qua kệ trên và kệ dưới đã vẽ)
+      for (let row = 1; row < actualRows; row++) {
+        // Vị trí Y bắt đầu từ đáy lên
+        const rowY = shelfBottomY + thickness + row * shelfSpacing;
+
+        // Chỉ vẽ kệ nếu nằm trong phạm vi chiều cao của cột
+        if (rowY < shelfBottomY + colHeight - thickness) {
+          shelves.push(
+            <mesh
+              key={`horizontal-shelf-${col}-${row}`}
+              position={[centerX, rowY, 0]}
+            >
+              <boxGeometry args={[colWidth + thickness, thickness, depth]} />
+              <meshStandardMaterial
+                map={texture}
+                roughness={0.7}
+                metalness={0.1}
+              />
+            </mesh>
+          );
+        }
+      }
+    }
+
+    return shelves;
+  };
+
+  // Tính toán tổng chiều rộng thực tế để cập nhật tỷ lệ
+  const totalWidth = calculateTotalWidth();
 
   return (
-    <group ref={meshRef}>
-      {/* Khung ngoài */}
-      <mesh position={[0, 0, 0]}>
-        <boxGeometry args={[width, height, depth]} />
-        <meshStandardMaterial color={shelfColor} transparent opacity={0.1} />
-      </mesh>
+    <group ref={groupRef}>
+      {/* Toàn bộ kệ sách */}
+      <group>
+        {/* Khung ngoài của kệ */}
+        {renderOuterFrame()}
 
-      {/* THAY ĐỔI: Vách ngăn dọc - sử dụng vị trí tính từ hàm getVerticalWallPositions */}
-      {verticalWallPositions.map((posX, i) => (
-        <mesh key={`vertical-${i}`} position={[posX, 0, 0]}>
-          <boxGeometry args={[thickness, getColumnHeight(i), depth]} />
-          <meshStandardMaterial color={shelfColor} />
-        </mesh>
-      ))}
+        {/* Các vách ngăn dọc bên trong */}
+        {renderVerticalDividers()}
 
-      {/* Vách ngăn ngang */}
-      {Array(rows - 1)
-        .fill(0)
-        .map((_, i) => (
-          <mesh
-            key={`horizontal-${i}`}
-            position={[0, -height / 2 + (i + 1) * (height / rows), 0]}
-          >
-            <boxGeometry args={[width, thickness, depth]} />
-            <meshStandardMaterial color={shelfColor} />
-          </mesh>
-        ))}
+        {/* Các kệ ngang bên trong */}
+        {renderHorizontalShelves()}
+      </group>
 
-      {/* Mặt sau - chỉ hiển thị khi là "Suspendu" */}
-      {hasBackPanel && (
-        <mesh position={[0, 0, -depth / 2]}>
-          <boxGeometry args={[width, height, thickness]} />
-          <meshStandardMaterial color={shelfColor} />
-        </mesh>
-      )}
-
-      {/* Mặt trên */}
-      <mesh position={[0, height / 2, 0]}>
-        <boxGeometry args={[width, thickness, depth]} />
-        <meshStandardMaterial color={shelfColor} />
-      </mesh>
-
-      {/* Mặt dưới */}
-      <mesh position={[0, -height / 2, 0]}>
-        <boxGeometry args={[width, thickness, depth]} />
-        <meshStandardMaterial color={shelfColor} />
-      </mesh>
-
-      {/* Mặt trái */}
-      <mesh position={[-width / 2, 0, 0]}>
-        <boxGeometry args={[thickness, height, depth]} />
-        <meshStandardMaterial color={shelfColor} />
-      </mesh>
-
-      {/* Mặt phải */}
-      <mesh position={[width / 2, 0, 0]}>
-        <boxGeometry args={[thickness, height, depth]} />
-        <meshStandardMaterial color={shelfColor} />
-      </mesh>
-
-      {/* Thêm phần đo lường khi showMeasurements = true */}
+      {/* Measurements (when enabled) */}
       {showMeasurements && (
         <group>
-          {/* Đo chiều rộng */}
           <LineWithLabel
-            start={[-width / 2, height / 2 + 0.1, 0]}
-            end={[width / 2, height / 2 + 0.1, 0]}
-            label={`${config.width} cm`}
+            start={[-totalWidth / 2, shelfBottomY + height + 0.1, 0]}
+            end={[totalWidth / 2, shelfBottomY + height + 0.1, 0]}
+            label={`${Math.round(totalWidth * 100)} cm`}
             color="#FF0000"
           />
-
-          {/* Đo chiều cao */}
           <LineWithLabel
-            start={[width / 2 + 0.1, -height / 2, 0]}
-            end={[width / 2 + 0.1, height / 2, 0]}
+            start={[totalWidth / 2 + 0.1, shelfBottomY, 0]}
+            end={[totalWidth / 2 + 0.1, shelfBottomY + height, 0]}
             label={`${config.height} cm`}
             color="#0000FF"
           />
-
-          {/* Đo chiều sâu */}
           <LineWithLabel
-            start={[width / 2, height / 2, -depth / 2]}
-            end={[width / 2, height / 2, depth / 2]}
+            start={[totalWidth / 2, shelfBottomY + height, -depth / 2]}
+            end={[totalWidth / 2, shelfBottomY + height, depth / 2]}
             label={`${config.depth} cm`}
             color="#00AA00"
           />
         </group>
       )}
 
-      {/* ColumnHighlights */}
+      {/* Column highlights */}
       <ColumnHighlights
-        width={width}
-        height={height}
+        width={totalWidth}
+        height={standardHeight}
         depth={depth}
         thickness={thickness}
         columns={columns}

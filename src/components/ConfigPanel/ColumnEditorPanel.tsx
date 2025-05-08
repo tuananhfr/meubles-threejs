@@ -3,6 +3,8 @@ import BackButton from "../Button/BackButton";
 import { useConfig } from "../context/ConfigContext";
 import HeightAdjustmentComponent from "./HeightAdjustmentComponent";
 import WidthAdjustmentComponent from "./WidthAdjustmentComponent";
+import DuplicateAdjustmentComponent from "./DuplicateAdjustmentComponent";
+import DeleteAdjustmentComponent from "./DeleteAdjustmentComponent";
 
 const ColumnEditorPanel: React.FC = () => {
   const { config, updateConfig } = useConfig();
@@ -62,11 +64,19 @@ const ColumnEditorPanel: React.FC = () => {
     }
 
     if (config.editColumns.isOpenEditDuplicate) {
-      return <div>Duplicate column component</div>;
+      return (
+        <div>
+          <DuplicateAdjustmentComponent />
+        </div>
+      );
     }
 
     if (config.editColumns.isOpenEditDelete) {
-      return <div>Delete column component</div>;
+      return (
+        <div>
+          <DeleteAdjustmentComponent />
+        </div>
+      );
     }
 
     // Default: show the option buttons or instruction
@@ -87,7 +97,7 @@ const ColumnEditorPanel: React.FC = () => {
                 config.columnHeights[
                   config.editColumns.selectedColumnInfo!.index
                 ]
-              )}
+              )}{" "}
               cm
             </div>
           </button>
@@ -103,7 +113,13 @@ const ColumnEditorPanel: React.FC = () => {
               <i className="bi bi-arrows fs-2"></i>
             </div>
             <div>
-              B: {Math.round(config.editColumns.selectedColumnInfo!.width)} cm
+              L:{" "}
+              {Math.round(
+                config.columnWidths[
+                  config.editColumns.selectedColumnInfo!.index
+                ]
+              )}{" "}
+              cm
             </div>
           </button>
         </div>

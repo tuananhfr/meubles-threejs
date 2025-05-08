@@ -7,6 +7,7 @@ declare global {
       key: K,
       value: ConfigState[K]
     ) => void;
+    batchUpdate: (updates: Partial<ConfigState>) => void; // Thêm kiểu cho batchUpdate
   }
 
   interface ConfigState {
@@ -14,12 +15,16 @@ declare global {
     height: number;
     depth: number;
     thickness: number;
-    position: "Au sol" | "Suspendu";
-    activeView: "Étagère entière" | "Tablettes" | "Panneaux";
+    position: string;
+    activeView: string;
     columns: number;
+    rows: number;
+
     editColumns: EditColumns;
     columnHeights: ColumnDimensions;
     columnWidths: ColumnDimensions;
+    columnWidthsOption: string;
+
     cellWidth: number;
     cellHeight: number;
   }
@@ -115,6 +120,12 @@ declare global {
     thickness: number;
     columns: number;
     rows: number;
+  }
+
+  export interface ColumnCalculations {
+    getColumnHeight: (colIndex: number) => number;
+    getColumnWidth: (colIndex: number) => number;
+    getColumnStartX: (colIndex: number) => number;
   }
 }
 

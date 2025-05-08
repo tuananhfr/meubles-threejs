@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment } from "@react-three/drei";
-import ShelfModel1 from "./Shelf/ShelfModel1";
+import ShelfModel from "./Shelf/ShelfModel";
 
 import CanvasControls from "./CanvasControls";
 import CameraController from "./CameraController";
@@ -42,7 +42,7 @@ const ThreeDPreview: React.FC = () => {
         />
         <pointLight position={[-10, -10, -10]} />
 
-        <ShelfModel1 />
+        <ShelfModel />
 
         <CameraController
           zoomInTriggered={zoomInTriggered}

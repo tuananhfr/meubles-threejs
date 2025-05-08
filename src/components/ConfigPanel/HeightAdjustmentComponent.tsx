@@ -33,12 +33,35 @@ const HeightAdjustmentComponent: React.FC = () => {
     }
   };
 
-  const handleApply = () => {
+  const handleBack = () => {
     updateConfig("editColumns", {
       ...config.editColumns,
       isOpenOption: true,
       isOpenEditHeight: false,
     });
+  };
+
+  const handleApply = () => {
+    if (columnInfo) {
+      // Cập nhật columnInfo với chiều cao mới
+      const updatedColumnInfo = {
+        ...columnInfo,
+        height: editingHeight,
+      };
+
+      // Cập nhật editColumns với thông tin cột đã cập nhật
+      updateConfig("editColumns", {
+        ...config.editColumns,
+        isOpenOption: true,
+        isOpenEditHeight: false,
+        selectedColumnInfo: updatedColumnInfo,
+      });
+
+      // Đảm bảo columnHeights được cập nhật
+      const newColumnHeights = { ...config.columnHeights };
+      newColumnHeights[columnInfo.index] = editingHeight;
+      updateConfig("columnHeights", newColumnHeights);
+    }
   };
 
   return (
@@ -58,7 +81,10 @@ const HeightAdjustmentComponent: React.FC = () => {
         </div>
       </>
 
-      <div className="d-flex justify-content-end mt-3">
+      <div className="d-flex justify-content-between mt-3">
+        <button className="btn btn-secondary" onClick={handleBack}>
+          Annuler
+        </button>
         <button className="btn btn-primary" onClick={handleApply}>
           Appliquer
         </button>

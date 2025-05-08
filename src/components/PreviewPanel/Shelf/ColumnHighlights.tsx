@@ -3,6 +3,15 @@ import { Text } from "@react-three/drei";
 import { ThreeEvent } from "@react-three/fiber";
 import { useConfig } from "../../context/ConfigContext";
 
+interface ColumnHighlightsProps {
+  width: number;
+  height: number;
+  depth: number;
+  thickness: number;
+  columns: number;
+  rows: number;
+}
+
 interface ColumnInfo {
   index: number;
   width: number;
@@ -17,86 +26,111 @@ const ColumnHighlights: React.FC<ColumnHighlightsProps> = ({
   depth,
   thickness,
   columns,
-  rows,
 }) => {
   const { config, updateConfig } = useConfig();
   const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
   const [selectedColumn, setSelectedColumn] = useState<number | null>(null);
 
-  // Tính kích thước thực của mỗi ô
-  const totalWallWidth = thickness * (columns + 1);
-  const cellWidth = (width - totalWallWidth) / columns;
-  const cellHeight = height / rows;
+  // Chuyển đổi cellWidth và cellHeight sang đơn vị 3D
+  const cellWidth = config.cellWidth / 100;
+  const cellHeight = config.cellHeight / 100;
 
-  // Xác định vị trí các biểu tượng thêm
-  const getAddIconPositions = () => {
+  // Vị trí đáy của kệ (cố định cho mọi cột)
+  const shelfBottomY = -height / 2;
+
+  // Helper function để lấy chiều cao thực tế của mỗi cột
+  const getColumnHeight = (colIndex: number) => {
+    if (config.columnHeights && config.columnHeights[colIndex] !== undefined) {
+      return config.columnHeights[colIndex] / 100;
+    }
+    return height; // Sử dụng trực tiếp height từ props
+  };
+
+  // Helper function để lấy chiều rộng thực tế của mỗi cột
+  const getColumnWidth = (colIndex: number) => {
+    if (config.columnWidths && config.columnWidths[colIndex] !== undefined) {
+      return config.columnWidths[colIndex] / 100;
+    }
+    return cellWidth;
+  };
+
+  // Helper function để tính vị trí X của mỗi cột
+  const getColumnXPosition = (colIndex: number) => {
+    let startX = -width / 2;
+    for (let i = 0; i < colIndex; i++) {
+      startX += getColumnWidth(i) + thickness;
+    }
+    return startX;
+  };
+
+  // Hàm tạo vị trí highlight và icon cho từng cột
+  const getColumnPositions = () => {
     const positions = [];
 
-    // Vị trí bắt đầu của kệ
-    const startX = -width / 2;
-
-    // Thêm biểu tượng cho mỗi cột
+    // Tính toán vị trí cho từng cột
     for (let i = 0; i < columns; i++) {
-      // Tính vị trí x chính xác ở giữa mỗi ô
-      const x =
-        startX + thickness + i * (cellWidth + thickness) + cellWidth / 2;
+      const colWidth = getColumnWidth(i);
+      const colHeight = getColumnHeight(i);
+      const startX = getColumnXPosition(i);
 
-      // Xử lý vị trí y dựa trên rows (số ô theo chiều dọc)
-      let y;
+      // Tính vị trí x ở giữa cột
+      const centerX = startX + colWidth / 2 + thickness / 2;
 
-      // Kiểm tra số ô trong hàng dọc là chẵn hay lẻ
-      if (rows % 2 === 0) {
-        // Số ô chẵn - đặt giữa 2 ô ở giữa
-        const middleWallY = -height / 2 + (rows / 2) * cellHeight;
-        y = middleWallY; // Đặt trên vách ngăn giữa ô 3 và 4 (nếu có 6 ô)
-      } else {
-        // Số ô lẻ - đặt ở giữa ô giữa
-        const middleRow = Math.floor(rows / 2);
-        y = -height / 2 + (middleRow + 0.5) * cellHeight;
-      }
+      // Tính vị trí y dựa trên chiều cao thực tế
+      // Đáy cột cố định ở shelfBottomY, phần trên mở rộng lên
+      const centerY = shelfBottomY + colHeight / 2;
 
-      // Thêm vị trí biểu tượng vào mảng kết quả
+      // Tính vị trí icon ở giữa cột
+      // Sử dụng số hàng (rows) để chia đều chiều cao cột
+      const actualRows = Math.max(
+        1,
+        Math.floor((colHeight - thickness) / (cellHeight + thickness))
+      );
+      const shelfSpacing = colHeight / actualRows;
+      const iconY = shelfBottomY + (actualRows / 2) * shelfSpacing;
+
       positions.push({
         col: i,
-        row: rows % 2 === 0 ? rows / 2 - 0.5 : Math.floor(rows / 2),
-        x,
-        y,
+        x: centerX,
+        y: centerY,
+        iconY: iconY,
+        width: colWidth,
+        height: colHeight,
       });
     }
 
     return positions;
   };
 
-  const addIconPositions = getAddIconPositions();
+  const columnPositions = getColumnPositions();
 
-  // Cập nhật hàm xử lý khi nhấp vào cột để chỉ chọn một cột và lưu thông tin về cột
+  // Xử lý khi nhấp vào cột
   const handleColumnClick = (colIndex: number) => {
     setSelectedColumn((prevSelected) => {
-      // Nếu cột đang được chọn, hủy chọn (trả về null)
       if (prevSelected === colIndex) {
         updateConfig("editColumns", {
           ...config.editColumns,
           isOpenOption: false,
+          isOpenEditHeight: false,
           selectedColumnInfo: null,
         });
-
         return null;
       }
 
-      // Lấy thông tin về cột được chọn
+      // Lấy thông tin chi tiết về cột được chọn
+      const position = columnPositions[colIndex];
       const columnInfo: ColumnInfo = {
         index: colIndex,
-        width: cellWidth * 100, // Chuyển về cm
-        height: height * 100, // Chuyển về cm
+        width: position.width * 100, // Chuyển về cm
+        height: position.height * 100, // Chuyển về cm
         depth: depth * 100, // Chuyển về cm
         position: {
-          x: addIconPositions[colIndex].x * 100, // Chuyển về cm
+          x: position.x * 100, // Chuyển về cm
           y: 0,
           z: 0,
         },
       };
 
-      // Nếu không, chọn cột mới và lưu thông tin về cột
       updateConfig("editColumns", {
         ...config.editColumns,
         isOpenOption: true,
@@ -107,16 +141,17 @@ const ColumnHighlights: React.FC<ColumnHighlightsProps> = ({
     });
   };
 
-  // xử lý để đảm bảo sự kiện hover hoạt động nhất quán
+  // Xử lý sự kiện hover
   const handlePointerMove = (event: ThreeEvent<PointerEvent>) => {
-    // Kiểm tra nếu tọa độ chuột nằm trong phạm vi của cột nào
     const x = event.point.x;
     let hoveredCol = null;
 
-    for (let i = 0; i < addIconPositions.length; i++) {
-      const pos = addIconPositions[i];
-      const columnStartX = pos.x - cellWidth / 2;
-      const columnEndX = pos.x + cellWidth / 2;
+    // Kiểm tra xem pointer có nằm trong phạm vi của cột nào không
+    for (let i = 0; i < columnPositions.length; i++) {
+      const pos = columnPositions[i];
+      const halfWidth = pos.width / 2;
+      const columnStartX = pos.x - halfWidth - thickness / 2;
+      const columnEndX = pos.x + halfWidth + thickness / 2;
 
       if (x >= columnStartX && x <= columnEndX) {
         hoveredCol = i;
@@ -130,20 +165,19 @@ const ColumnHighlights: React.FC<ColumnHighlightsProps> = ({
     }
   };
 
-  // đặt lại khi chuột rời khỏi kệ
+  // Reset khi pointer rời khỏi kệ
   const handlePointerLeave = () => {
     setHoveredColumn(null);
     document.body.style.cursor = "auto";
   };
 
-  // Reset selected column when menu is closed
+  // Reset selected column khi menu đóng
   useEffect(() => {
     if (!config.editColumns.isOpenMenu) {
       setSelectedColumn(null);
       setHoveredColumn(null);
       document.body.style.cursor = "auto";
 
-      // Also reset the isOpenOption if needed
       if (config.editColumns.isOpenOption) {
         updateConfig("editColumns", {
           ...config.editColumns,
@@ -155,6 +189,14 @@ const ColumnHighlights: React.FC<ColumnHighlightsProps> = ({
           isOpenEditDelete: false,
         });
       }
+    } else if (
+      !config.editColumns.isOpenOption &&
+      config.editColumns.selectedColumnInfo === null
+    ) {
+      // Nếu menu mở nhưng không có cột nào được chọn, reset selectedColumn
+      setSelectedColumn(null);
+      setHoveredColumn(null);
+      document.body.style.cursor = "auto";
     }
   }, [
     config.editColumns,
@@ -163,7 +205,7 @@ const ColumnHighlights: React.FC<ColumnHighlightsProps> = ({
     updateConfig,
   ]);
 
-  // Chỉ hiển thị nếu menu đang mở
+  // Chỉ hiển thị khi menu đang mở
   if (!config.editColumns.isOpenMenu) {
     return null;
   }
@@ -174,16 +216,16 @@ const ColumnHighlights: React.FC<ColumnHighlightsProps> = ({
       onPointerLeave={handlePointerLeave}
     >
       {/* Highlight cho mỗi cột */}
-      {addIconPositions.map((pos, index) => (
+      {columnPositions.map((pos, index) => (
         <mesh
           key={`column-highlight-${index}`}
-          position={[pos.x, 0, 0]}
+          position={[pos.x, pos.y, 0]}
           onClick={(e) => {
             handleColumnClick(pos.col);
             e.stopPropagation();
           }}
         >
-          <boxGeometry args={[cellWidth, height, depth]} />
+          <boxGeometry args={[pos.width + thickness, pos.height, depth]} />
           <meshBasicMaterial
             color={selectedColumn === pos.col ? "#d4f5d4" : "#e6f7f9"}
             transparent
@@ -196,11 +238,11 @@ const ColumnHighlights: React.FC<ColumnHighlightsProps> = ({
         </mesh>
       ))}
 
-      {/* Biểu tượng "+" hoặc "✓" tùy thuộc vào trạng thái */}
-      {addIconPositions.map((pos, index) => (
+      {/* Biểu tượng "+" hoặc "✓" */}
+      {columnPositions.map((pos, index) => (
         <group
           key={`add-icon-${index}`}
-          position={[pos.x, pos.y, depth / 2 + 0.01]}
+          position={[pos.x, pos.iconY, depth / 2 + 0.01]}
         >
           <mesh>
             <circleGeometry args={[0.05, 32]} />

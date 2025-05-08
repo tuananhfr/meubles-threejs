@@ -17,6 +17,9 @@ const ConfigPanel: React.FC = () => {
       isOpenMenu: true,
     });
   };
+  const handleChangeHeight = (value: number) => {
+    updateConfig("height", value);
+  };
   return (
     <>
       {config.editColumns.isOpenMenu ? (
@@ -40,14 +43,14 @@ const ConfigPanel: React.FC = () => {
             min={40}
             max={420}
             step={38}
-            onChange={(value) => updateConfig("height", value)}
+            onChange={(value) => handleChangeHeight(value)}
           />
 
           {/* Profondeur */}
           <div className="dimension-control">
             <label className="dimension-label">Profondeur</label>
             <OptionButtons
-              options={["35 cm", "47 cm"]}
+              options={["36 cm", "48 cm"]}
               activeOption={`${config.depth} cm`}
               onChange={(value) => updateConfig("depth", parseInt(value))}
               showInfo={true}
