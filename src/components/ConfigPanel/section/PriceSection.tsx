@@ -1,5 +1,3 @@
-import React from "react";
-
 const PriceSection: React.FC = () => {
   return (
     <div className="d-flex align-items-center w-100">

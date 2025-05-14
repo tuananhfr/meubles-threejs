@@ -3,7 +3,7 @@ import PreviewPanel from "./components/PreviewPanel/PreviewPanel";
 import "./css/App.css";
 
 import ActionButtons from "./components/Button/ActionButtons";
-import PriceSection from "./components/ConfigPanel/Section/PriceSection";
+import PriceSection from "./components/ConfigPanel/section/PriceSection";
 
 function App() {
   return (
