@@ -2,8 +2,8 @@ import ConfigPanel from "./components/ConfigPanel/ConfigPanel";
 import PreviewPanel from "./components/PreviewPanel/PreviewPanel";
 import "./css/App.css";
 
-import PriceSection from "./components/ConfigPanel/Section/PriceSection";
 import ActionButtons from "./components/Button/ActionButtons";
+import PriceSection from "./components/ConfigPanel/Section/PriceSection";
 
 function App() {
   return (
