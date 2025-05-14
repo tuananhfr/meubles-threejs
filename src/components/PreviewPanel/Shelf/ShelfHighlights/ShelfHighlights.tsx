@@ -39,8 +39,6 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
   const [selectedShelves, setSelectedShelves] = useState<string[]>([]);
   const [shelfPositions, setShelfPositions] = useState<any[]>([]);
 
-  // Track if we're in the initial render to prevent flickering
-  const initialRenderRef = useRef(true);
   const hasResetRef = useRef(false);
 
   // Initialize display modes directly from config to prevent flickering
@@ -474,45 +472,6 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
     height,
     thickness,
   ]);
-
-  // Kiểm tra nếu kệ này là kệ tăng cường
-  const isReinforcedShelf = (
-    row: number,
-    column: number,
-    isVirtualShelf: boolean
-  ) => {
-    // Trả về false nếu đang reset hoặc không có selectedShelves
-    if (hasResetRef.current || !config.editShelf?.selectedShelves) return false;
-
-    // Tìm trong danh sách tất cả các kệ đã chọn
-    return config.editShelf.selectedShelves.some(
-      (shelf) =>
-        shelf.row === row &&
-        shelf.column === column &&
-        shelf.isVirtual === isVirtualShelf &&
-        shelf.isReinforced === true
-    );
-  };
-
-  // Kiểm tra nếu kệ này là kệ chuẩn
-  const isStandardShelf = (
-    row: number,
-    column: number,
-    isVirtualShelf: boolean
-  ) => {
-    // Trả về false nếu đang reset hoặc không có selectedShelves
-    if (hasResetRef.current || !config.editShelf?.selectedShelves) return false;
-
-    // Tìm trong danh sách tất cả các kệ đã chọn
-    return config.editShelf.selectedShelves.some(
-      (shelf) =>
-        shelf.row === row &&
-        shelf.column === column &&
-        shelf.isVirtual === isVirtualShelf &&
-        (shelf.isStandard === true ||
-          (!shelf.isReinforced && !shelf.isStandard))
-    );
-  };
 
   // Xử lý khi nhấp vào kệ
   const handleShelfClick = (shelfInfo: any) => {

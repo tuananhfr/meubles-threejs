@@ -28,7 +28,7 @@ const RemoveShelfComponent: React.FC = () => {
         : `${shelf.row}-${shelf.column}`;
 
       // Format key thật và key ảo cho việc xử lý
-      const realKey = `${shelf.row}-${shelf.column}`;
+
       const virtualKey = `${shelf.row}-${shelf.column}-virtual`;
 
       // 1. Đánh dấu kệ hiện tại là đã xóa

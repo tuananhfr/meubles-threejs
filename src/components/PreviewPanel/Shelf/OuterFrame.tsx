@@ -1,7 +1,8 @@
 // components/OuterFrame.tsx
 import React from "react";
 import * as THREE from "three";
-import { useConfig } from "../../context/ConfigContext";
+import taupeTexture from "../../../assets/images/samples-wenge-wood-effect-800x800.jpg";
+import { useLoader } from "@react-three/fiber";
 
 interface OuterFrameProps {
   columns: number;
@@ -30,15 +31,8 @@ const OuterFrame: React.FC<OuterFrameProps> = ({
   getColumnWidth,
   getColumnXPosition,
 }) => {
-  // Hàm để lấy chỉ số hàng cao nhất cho mỗi cột
-  const getMaxRowIndex = (col: number) => {
-    const colHeight = getColumnHeight(col);
-    const shelfSpacing = cellHeight + thickness;
-    return Math.max(
-      1,
-      Math.floor((colHeight - 2 * thickness) / shelfSpacing) + 1
-    );
-  };
+  const textureBackboard = useLoader(THREE.TextureLoader, taupeTexture);
+
   const renderOuterFrame = () => {
     const frames = [];
     const startX = -totalWidth / 2;
@@ -47,7 +41,7 @@ const OuterFrame: React.FC<OuterFrameProps> = ({
       const colWidth = getColumnWidth(col);
       const colHeight = getColumnHeight(col);
       const colX = getColumnXPosition(col);
-      const centerX = colX + colWidth / 2 + thickness / 2;
+
       const verticalWallHeight = colHeight;
 
       // Vách trái (chỉ vẽ cho cột đầu tiên)
@@ -92,25 +86,54 @@ const OuterFrame: React.FC<OuterFrameProps> = ({
         );
       }
 
-      // Vách sau cho cột này nếu cần
+      // Vẽ mặt sau cho từng ô trong kệ
       if (hasBackPanel) {
-        frames.push(
-          <mesh
-            key={`back-wall-${col}`}
-            position={[
-              centerX,
-              shelfBottomY + colHeight / 2,
-              -depth / 2 + thickness / 2,
-            ]}
-          >
-            <boxGeometry args={[colWidth, verticalWallHeight, thickness]} />
-            <meshStandardMaterial
-              map={texture}
-              roughness={0.7}
-              metalness={0.1}
-            />
-          </mesh>
+        // Tính số hàng thực tế dựa trên chiều cao của cột
+        const shelfSpacing = cellHeight + thickness;
+        const actualRows = Math.max(
+          1,
+          Math.floor((colHeight - 2 * thickness) / shelfSpacing) + 1
         );
+
+        // Vẽ mặt sau cho từng ô, bao gồm cả row top
+        for (let row = 0; row <= actualRows - 1; row++) {
+          // Tính toán chiều cao của ô hiện tại
+          let currentCellHeight = cellHeight;
+          let cellY;
+
+          const lastShelfY =
+            shelfBottomY +
+            thickness +
+            (row - 1) * shelfSpacing +
+            cellHeight +
+            thickness;
+          const topShelfY = shelfBottomY + colHeight;
+          currentCellHeight = topShelfY - lastShelfY - thickness;
+          cellY = lastShelfY + currentCellHeight / 2;
+
+          // Điều chỉnh chiều rộng và vị trí X của mặt sau dựa trên loại cột
+          let backPanelWidth = colWidth;
+          let cellX = colX + colWidth / 2 + thickness / 2;
+
+          // Vị trí Z của mặt sau (đặt ở phía sau, cách một khoảng nhỏ để tránh z-fighting)
+          const backPanelZ = -depth / 2 + thickness / 2 + 0.0001;
+
+          frames.push(
+            <mesh
+              key={`back-panel-${col}-${row}`}
+              position={[cellX, cellY, backPanelZ]}
+            >
+              <boxGeometry
+                args={[backPanelWidth, currentCellHeight, thickness]}
+              />
+              <meshStandardMaterial
+                map={textureBackboard}
+                roughness={0.7}
+                metalness={0.1}
+              />
+            </mesh>
+          );
+        }
       }
     }
 

@@ -18,7 +18,6 @@ const DeleteModeComponent: React.FC<DeleteModeComponentProps> = ({
   depth,
   handleShelfClick,
   isStandardOrReinforcedShelf,
-  hasResetRef,
 }) => {
   // Sử dụng useMemo để filter các kệ một lần duy nhất
   const filteredShelves = useMemo(() => {

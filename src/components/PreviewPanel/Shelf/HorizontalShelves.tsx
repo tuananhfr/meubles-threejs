@@ -1,8 +1,8 @@
 // components/HorizontalShelves.tsx
-import React, { useMemo } from "react";
+import React from "react";
 import * as THREE from "three";
 import { useConfig } from "../../context/ConfigContext";
-import { Html, Text } from "@react-three/drei";
+import { Text } from "@react-three/drei";
 
 interface HorizontalShelvesProps {
   columns: number;
@@ -21,7 +21,7 @@ interface HorizontalShelvesProps {
 
 const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
   columns,
-  rows,
+
   depth,
   thickness,
   cellHeight,

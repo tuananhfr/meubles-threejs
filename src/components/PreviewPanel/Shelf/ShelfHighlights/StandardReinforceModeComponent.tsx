@@ -22,7 +22,6 @@ const StandardReinforceModeComponent: React.FC<
   handleShelfClick,
   isStandardMode,
   isReinforcedMode,
-  hasResetRef,
 }) => {
   return (
     <>

@@ -14,8 +14,6 @@ import TextureSelector from "./Section/TextureSelector";
 
 const ConfigPanel: React.FC = () => {
   const { config, updateConfig } = useConfig();
-  console.log(config.columnHeights);
-  console.log(config.columnWidths);
 
   // Logic để hiển thị menu chính
   const isMainMenuOpen =

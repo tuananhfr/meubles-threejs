@@ -1,5 +1,4 @@
-// ShelfModel.tsx
-import { useRef, useMemo, useEffect } from "react";
+import { useRef } from "react";
 import * as THREE from "three";
 import { useConfig } from "../../context/ConfigContext";
 import { useLoader } from "@react-three/fiber";
@@ -37,7 +36,7 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
     thickness,
     columns,
     rows,
-    cellWidth,
+
     cellHeight,
     hasBackPanel,
     standardHeight,
