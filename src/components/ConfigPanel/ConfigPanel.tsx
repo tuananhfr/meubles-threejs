@@ -90,7 +90,7 @@ const ConfigPanel: React.FC = () => {
             min={40}
             max={420}
             step={38}
-            onChange={(value) => updateConfig("width", value)}
+            onChange={(value: number) => updateConfig("width", value)}
           />
           {/* Hauteur */}
           <DimensionControl
@@ -99,7 +99,7 @@ const ConfigPanel: React.FC = () => {
             min={40}
             max={420}
             step={38}
-            onChange={(value) => handleChangeHeight(value)}
+            onChange={(value: number) => handleChangeHeight(value)}
           />
           {/* Profondeur */}
           <div className="dimension-control">
@@ -107,7 +107,9 @@ const ConfigPanel: React.FC = () => {
             <OptionButtons
               options={["36 cm", "48 cm"]}
               activeOption={`${config.depth} cm`}
-              onChange={(value) => updateConfig("depth", parseInt(value))}
+              onChange={(value: string) =>
+                updateConfig("depth", parseInt(value))
+              }
               showInfo={true}
             />
           </div>
@@ -116,7 +118,7 @@ const ConfigPanel: React.FC = () => {
             <OptionButtons
               options={["Au sol", "Suspendu"]}
               activeOption={config.position}
-              onChange={(value) =>
+              onChange={(value: string) =>
                 updateConfig("position", value as "Au sol" | "Suspendu")
               }
               showInfo={true}
@@ -156,7 +158,7 @@ const ConfigPanel: React.FC = () => {
           <SelectorButtons
             options={["Étagère entière", "Tablettes", "Panneaux"]}
             activeOption={config.activeView}
-            onChange={(value) =>
+            onChange={(value: string) =>
               updateConfig(
                 "activeView",
                 value as "Étagère entière" | "Tablettes" | "Panneaux"
