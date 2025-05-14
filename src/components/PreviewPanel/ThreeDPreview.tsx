@@ -31,7 +31,7 @@ const ThreeDPreview: React.FC = () => {
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
       <Canvas camera={{ position: [0, 0, 2.5], fov: 50 }}>
-        <color attach="background" args={["#f8f8f8"]} />
+        <color attach="background" args={["#e5e6e8"]} />
 
         <ambientLight intensity={0.5} />
         <spotLight

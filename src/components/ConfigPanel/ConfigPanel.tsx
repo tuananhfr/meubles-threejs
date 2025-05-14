@@ -1,30 +1,89 @@
-import DimensionControl from "./section/DimensionControl";
-import OptionButtons from "./section/OptionButtons";
-import OptionSection from "./section/OptionSection";
-import SelectorButtons from "./section/SelectorButtons";
-
+import React from "react";
+import DimensionControl from "./Section/DimensionControl";
+import OptionButtons from "./Section/OptionButtons";
+import OptionSection from "./Section/OptionSection";
+import SelectorButtons from "./Section/SelectorButtons";
 import "../../css/components/ConfigPanel.css";
-
-import ColumnEditorPanel from "./ColumnEditorPanel";
+import ColumnEditorPanel from "./ColumnEditor/ColumnEditorPanel";
+import ShelfEditorPanel from "./ShelfEditor/ShelfEditorPanel";
+import FeetEditorPanel from "./FeetEditor/FeetEditorPanel";
+import FacadeEditorPanel from "./FacadeEditor/FacadeEditorPanel";
+import BackboardEditorPanel from "./BackboardEditor/BackboardEditorPanel";
 import { useConfig } from "../context/ConfigContext";
+import TextureSelector from "./Section/TextureSelector";
 
 const ConfigPanel: React.FC = () => {
   const { config, updateConfig } = useConfig();
+  console.log(config.columnHeights);
+  console.log(config.columnWidths);
 
-  const handleActionClick = () => {
+  // Logic để hiển thị menu chính
+  const isMainMenuOpen =
+    !config.editColumns?.isOpenMenu &&
+    !config.editShelf?.isOpenMenu &&
+    !config.editFeet?.isOpenMenu &&
+    !config.editFacade?.isOpenMenu &&
+    !config.editBackboard?.isOpenMenu;
+
+  // Các hàm xử lý để mở các menu phụ
+  const handleEditColumns = () => {
     updateConfig("editColumns", {
       ...config.editColumns,
       isOpenMenu: true,
     });
   };
+
+  const handleEditShelf = () => {
+    updateConfig("editShelf", {
+      ...(config.editShelf || {}),
+      isOpenMenu: true,
+    });
+  };
+
+  const handleEditFeet = () => {
+    updateConfig("editFeet", {
+      ...(config.editFeet || {}),
+      isOpenMenu: true,
+    });
+  };
+
+  const handleEditFacade = () => {
+    updateConfig("editFacade", {
+      ...(config.editFacade || {}),
+      isOpenMenu: true,
+    });
+  };
+
+  const handleEditBackboard = () => {
+    updateConfig("editBackboard", {
+      ...(config.editBackboard || {}),
+      isOpenMenu: true,
+    });
+  };
+
   const handleChangeHeight = (value: number) => {
     updateConfig("height", value);
   };
+
   return (
     <>
-      {config.editColumns.isOpenMenu ? (
-        <ColumnEditorPanel />
-      ) : (
+      {/* Hiển thị ColumnEditorPanel nếu editColumns.isOpenMenu = true */}
+      {config.editColumns?.isOpenMenu && <ColumnEditorPanel />}
+
+      {/* Hiển thị ShelfEditorPanel nếu editShelf.isOpenMenu = true */}
+      {config.editShelf?.isOpenMenu && <ShelfEditorPanel />}
+
+      {/* Hiển thị FeetEditorPanel nếu editFeet.isOpenMenu = true */}
+      {config.editFeet?.isOpenMenu && <FeetEditorPanel />}
+
+      {/* Hiển thị FacadeEditorPanel nếu editFacade.isOpenMenu = true */}
+      {config.editFacade?.isOpenMenu && <FacadeEditorPanel />}
+
+      {/* Hiển thị BackboardEditorPanel nếu editBackboard.isOpenMenu = true */}
+      {config.editBackboard?.isOpenMenu && <BackboardEditorPanel />}
+
+      {/* Hiển thị menu chính nếu không có menu phụ nào đang mở */}
+      {isMainMenuOpen && (
         <div>
           {/* Largeur */}
           <DimensionControl
@@ -35,7 +94,6 @@ const ConfigPanel: React.FC = () => {
             step={38}
             onChange={(value) => updateConfig("width", value)}
           />
-
           {/* Hauteur */}
           <DimensionControl
             label="Hauteur"
@@ -45,7 +103,6 @@ const ConfigPanel: React.FC = () => {
             step={38}
             onChange={(value) => handleChangeHeight(value)}
           />
-
           {/* Profondeur */}
           <div className="dimension-control">
             <label className="dimension-label">Profondeur</label>
@@ -56,7 +113,6 @@ const ConfigPanel: React.FC = () => {
               showInfo={true}
             />
           </div>
-
           {/* Poses */}
           <OptionSection title="Poses">
             <OptionButtons
@@ -68,43 +124,36 @@ const ConfigPanel: React.FC = () => {
               showInfo={true}
             />
           </OptionSection>
-
           {/* Colonnes */}
-
           <OptionSection
             title="Colonnes"
             actionText="Éditer"
-            onActionClick={handleActionClick}
+            onActionClick={handleEditColumns}
           />
-
           {/* Pieds */}
           <OptionSection
             title="Pieds"
             actionText="Ajouter/Supprimer"
-            onActionClick={() => alert("Modifier pieds")}
+            onActionClick={handleEditFeet}
           />
-
           {/* Façades */}
           <OptionSection
             title="Façades"
             actionText="Ajouter/Supprimer"
-            onActionClick={() => alert("Modifier façades")}
+            onActionClick={handleEditFacade}
           />
-
           {/* Fonds */}
           <OptionSection
             title="Fonds"
             actionText="Ajouter/Supprimer"
-            onActionClick={() => alert("Modifier fonds")}
+            onActionClick={handleEditBackboard}
           />
-
           {/* Tablettes */}
           <OptionSection
             title="Tablettes"
             actionText="Ajouter/Supprimer"
-            onActionClick={() => alert("Modifier tablettes")}
+            onActionClick={handleEditShelf}
           />
-
           {/* Sélecteurs */}
           <SelectorButtons
             options={["Étagère entière", "Tablettes", "Panneaux"]}
@@ -116,6 +165,7 @@ const ConfigPanel: React.FC = () => {
               )
             }
           />
+          {config.activeView === "Étagère entière" && <TextureSelector />}
         </div>
       )}
     </>

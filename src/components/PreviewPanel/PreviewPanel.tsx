@@ -1,4 +1,5 @@
 import ThreeDPreview from "./ThreeDPreview";
+import ShelfModel1 from "./Shelf/ShelfModel1";
 import "../../css/components/PreviewPanel.css";
 
 const PreviewPanel: React.FC = () => {

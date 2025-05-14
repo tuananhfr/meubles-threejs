@@ -1,6 +1,6 @@
 import React from "react";
-import BackButton from "../Button/BackButton";
-import { useConfig } from "../context/ConfigContext";
+import BackButton from "../../Button/BackButton";
+import { useConfig } from "../../context/ConfigContext";
 import HeightAdjustmentComponent from "./HeightAdjustmentComponent";
 import WidthAdjustmentComponent from "./WidthAdjustmentComponent";
 import DuplicateAdjustmentComponent from "./DuplicateAdjustmentComponent";
@@ -151,7 +151,7 @@ const ColumnEditorPanel: React.FC = () => {
         </div>
       </div>
     ) : (
-      <div className="instruction my-2 text-secondary">
+      <div className="my-2 text-secondary">
         Commencez par sélectionner la colonne à modifier
       </div>
     );

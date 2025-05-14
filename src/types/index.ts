@@ -19,14 +19,36 @@ declare global {
     activeView: string;
     columns: number;
     rows: number;
+    texture: Texture;
+    listTextures: Texture[];
 
+    shelves: Record<string, ShelfData>;
     editColumns: EditColumns;
+    editShelf: EditShelf;
+    editFeet: EditFeet;
+    editFacade: EditFacade;
+    editBackboard: EditBackboard;
     columnHeights: ColumnDimensions;
     columnWidths: ColumnDimensions;
     columnWidthsOption: string;
 
     cellWidth: number;
     cellHeight: number;
+  }
+
+  interface ShelfData {
+    key: string; // Định danh duy nhất, dạng "row-column" hoặc "row-column-virtual"
+    row: number; // Vị trí hàng
+    column: number; // Vị trí cột
+    isVirtual: boolean; // Là kệ ảo hay không
+    isStandard: boolean; // Là kệ tiêu chuẩn hay không
+    isReinforced: boolean; // Là kệ tăng cường hay không
+    isRemoved: boolean; // Đã bị xóa hay chưa
+  }
+
+  interface Texture {
+    name: string;
+    src: string;
   }
 
   interface ColumnDimensions {
@@ -43,6 +65,25 @@ declare global {
     selectedColumnInfo: ColumnInfo | null;
   }
 
+  interface EditShelf {
+    isOpenMenu: boolean;
+    isOpenOption: boolean;
+    isOpenEditStandard: boolean;
+    isOpenEditReinforced: boolean;
+    isOpenEditDelete: boolean;
+
+    selectedShelves: ShelfInfo[];
+  }
+  interface EditFeet {
+    isOpenMenu: boolean;
+  }
+  interface EditFacade {
+    isOpenMenu: boolean;
+  }
+  interface EditBackboard {
+    isOpenMenu: boolean;
+  }
+
   interface ColumnInfo {
     index: number;
     width: number;
@@ -53,6 +94,33 @@ declare global {
       y: number;
       z: number;
     };
+  }
+
+  export enum ShelfEditMode {
+    NONE = "none",
+    STANDARD = "standard",
+    REINFORCED = "reinforced",
+    DELETE = "delete",
+  }
+  export interface ShelfPosition {
+    x: number;
+    y: number;
+    z: number;
+  }
+
+  export interface ShelfInfo {
+    index: number;
+    row: number;
+    column: number;
+    width: number;
+    height: number;
+    depth: number;
+    position: ShelfPosition;
+    isVirtual: boolean;
+    isReinforced: boolean;
+    isStandard?: boolean;
+    isRemoved?: boolean;
+    totalShelves?: number;
   }
 
   interface DimensionControlProps {
@@ -122,10 +190,18 @@ declare global {
     rows: number;
   }
 
-  export interface ColumnCalculations {
+  interface ColumnCalculations {
     getColumnHeight: (colIndex: number) => number;
     getColumnWidth: (colIndex: number) => number;
     getColumnStartX: (colIndex: number) => number;
+  }
+  interface ShelfHighlightsProps {
+    width: number;
+    height: number;
+    depth: number;
+    thickness: number;
+    columns: number;
+    rows: number;
   }
 }
 

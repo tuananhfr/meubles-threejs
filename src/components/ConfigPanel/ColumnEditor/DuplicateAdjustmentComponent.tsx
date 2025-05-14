@@ -1,5 +1,5 @@
 import React from "react";
-import { useConfig } from "../context/ConfigContext";
+import { useConfig } from "../../context/ConfigContext";
 
 const DuplicateColumnComponent: React.FC = () => {
   const { config, batchUpdate } = useConfig();

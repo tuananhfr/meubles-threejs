@@ -1,6 +1,5 @@
-import { useConfig } from "../context/ConfigContext";
-
 import { useState, useEffect, useRef } from "react";
+import { useConfig } from "../../context/ConfigContext";
 
 const widthOptions = ["36 cm", "48 cm"];
 const WidthAdjustmentComponent: React.FC = () => {
@@ -81,6 +80,7 @@ const WidthAdjustmentComponent: React.FC = () => {
         isOpenEditWidth: false,
         selectedColumnInfo: updatedColumnInfo,
       });
+      updateConfig("width", config.width + 12);
 
       // Reset giá trị ban đầu
       originalWidth.current = null;
