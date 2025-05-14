@@ -1,9 +1,9 @@
 import React from "react";
 
-import DimensionControl from "./Section/DimensionControl";
-import OptionButtons from "./Section/OptionButtons";
-import OptionSection from "./Section/OptionSection";
-import SelectorButtons from "./Section/SelectorButtons";
+import DimensionControl from "../ConfigPanel/Section/DimensionControl";
+import OptionButtons from "../ConfigPanel/Section/OptionButtons";
+import OptionSection from "../ConfigPanel/Section/OptionSection";
+import SelectorButtons from "../ConfigPanel/Section/SelectorButtons";
 import "../../css/components/ConfigPanel.css";
 import ColumnEditorPanel from "./ColumnEditor/ColumnEditorPanel";
 import ShelfEditorPanel from "./ShelfEditor/ShelfEditorPanel";
@@ -11,7 +11,7 @@ import FeetEditorPanel from "./FeetEditor/FeetEditorPanel";
 import FacadeEditorPanel from "./FacadeEditor/FacadeEditorPanel";
 import BackboardEditorPanel from "./BackboardEditor/BackboardEditorPanel";
 import { useConfig } from "../context/ConfigContext";
-import TextureSelector from "./Section/TextureSelector";
+import TextureSelector from "../ConfigPanel/Section/TextureSelector";
 
 const ConfigPanel: React.FC = () => {
   const { config, updateConfig } = useConfig();

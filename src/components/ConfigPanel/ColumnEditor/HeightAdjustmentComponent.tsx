@@ -1,6 +1,7 @@
+import React from "react";
 import { useState, useEffect } from "react";
 import { useConfig } from "../../context/ConfigContext";
-import DimensionControl from "../Section/DimensionControl";
+import DimensionControl from "../../ConfigPanel/Section/DimensionControl";
 
 const HeightAdjustmentComponent: React.FC = () => {
   const { config, updateConfig } = useConfig();
