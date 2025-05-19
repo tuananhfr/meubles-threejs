@@ -1,4 +1,4 @@
-// global.d.ts
+import * as THREE from "three";
 declare global {
   // Định nghĩa kiểu cho context
   interface ConfigContextType {
@@ -21,7 +21,7 @@ declare global {
     rows: number;
     texture: Texture;
     listTextures: Texture[];
-
+    backPanels: Record<string, BackPanelsData>;
     shelves: Record<string, ShelfData>;
     editColumns: EditColumns;
     editShelf: EditShelf;
@@ -46,6 +46,18 @@ declare global {
     isRemoved: boolean; // Đã bị xóa hay chưa
   }
 
+  interface BackPanelsData {
+    key: string; // Định danh duy nhất, dạng "row-column"
+    row: number; // Vị trí hàng
+    column: number; // Vị trí cột
+    position: [number, number, number]; // Vị trí [x, y, z]
+
+    // Thêm các thuộc tính kích thước
+    dimensions: [number, number, number]; // Kích thước [width, height, depth]
+    material: string;
+    isRemoved: boolean; // Đã bị xóa hay chưa
+    permanentlyDeleted: boolean;
+  }
   interface Texture {
     name: string;
     src: string;
@@ -82,6 +94,10 @@ declare global {
   }
   interface EditBackboard {
     isOpenMenu: boolean;
+    isSurfaceTotal: boolean;
+    isDeleteTotal: boolean;
+    isSurfaceOption: boolean;
+    selectedBackboard: BackPanelsData[];
   }
 
   interface ColumnInfo {
@@ -202,6 +218,74 @@ declare global {
     thickness: number;
     columns: number;
     rows: number;
+  }
+
+  interface OuterFrameProps {
+    columns: number;
+    depth: number;
+    cellHeight: number;
+    thickness: number;
+    totalWidth: number;
+    shelfBottomY: number;
+    hasBackPanel: boolean;
+    texture: THREE.Texture;
+    getColumnHeight: (colIndex: number) => number;
+    getColumnWidth: (colIndex: number) => number;
+    getColumnXPosition: (colIndex: number) => number;
+  }
+  // Định nghĩa cấu hình hiển thị cho từng trạng thái
+  interface PanelStateConfig {
+    highlightColor: string;
+    highlightOpacity: number;
+    iconBackgroundColor: string; // Màu background cho icon
+    iconColor: string;
+    iconText: string;
+  }
+
+  interface HorizontalShelvesProps {
+    columns: number;
+    rows: number; // Thêm tham số rows để biết tổng số hàng
+    depth: number;
+    thickness: number;
+    cellHeight: number;
+    shelfBottomY: number;
+    texture: THREE.Texture;
+    reinforcedTexture?: THREE.Texture; // Texture cho kệ tăng cường
+    standardTexture?: THREE.Texture; // Texture cho kệ tiêu chuẩn
+    getColumnHeight: (colIndex: number) => number;
+    getColumnWidth: (colIndex: number) => number;
+    getColumnXPosition: (colIndex: number) => number;
+  }
+
+  interface VerticalDividersProps {
+    columns: number;
+    depth: number;
+    thickness: number;
+    shelfBottomY: number;
+    texture: THREE.Texture;
+    getColumnHeight: (colIndex: number) => number;
+    getColumnXPosition: (colIndex: number) => number;
+  }
+
+  interface DeleteModeComponentProps {
+    shelfPositions: any[];
+    selectedShelves: string[];
+    hoveredShelf: string | null;
+    depth: number;
+    handleShelfClick: (shelfInfo: any) => void;
+    isStandardOrReinforcedShelf: (shelfId: string) => boolean;
+    hasResetRef: React.RefObject<boolean>;
+  }
+
+  interface StandardReinforceComponentProps {
+    shelfPositions: any[];
+    selectedShelves: string[];
+    hoveredShelf: string | null;
+    depth: number;
+    handleShelfClick: (shelfInfo: any) => void;
+    isStandardMode: boolean;
+    isReinforcedMode: boolean;
+    hasResetRef: React.RefObject<boolean>;
   }
 }
 

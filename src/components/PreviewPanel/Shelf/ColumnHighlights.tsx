@@ -3,23 +3,6 @@ import { Text } from "@react-three/drei";
 import { ThreeEvent } from "@react-three/fiber";
 import { useConfig } from "../../context/ConfigContext";
 
-interface ColumnHighlightsProps {
-  width: number;
-  height: number;
-  depth: number;
-  thickness: number;
-  columns: number;
-  rows: number;
-}
-
-interface ColumnInfo {
-  index: number;
-  width: number;
-  height: number;
-  depth: number;
-  position: { x: number; y: number; z: number };
-}
-
 const ColumnHighlights: React.FC<ColumnHighlightsProps> = ({
   width,
   height,

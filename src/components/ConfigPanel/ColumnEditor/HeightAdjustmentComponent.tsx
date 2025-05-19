@@ -21,6 +21,7 @@ const HeightAdjustmentComponent: React.FC = () => {
   }, [columnInfo, config.columnHeights, config.height]);
 
   // Xử lý khi chiều cao thay đổi
+  // Xử lý khi chiều cao thay đổi
   const handleHeightChange = (newHeight: number) => {
     setEditingHeight(newHeight);
 
@@ -29,7 +30,11 @@ const HeightAdjustmentComponent: React.FC = () => {
       const newColumnHeights = { ...config.columnHeights };
       newColumnHeights[colIndex] = newHeight;
       updateConfig("columnHeights", newColumnHeights);
-      updateConfig("height", newHeight);
+
+      // Chỉ cập nhật chiều cao tổng thể nếu chiều cao mới lớn hơn chiều cao hiện tại
+      if (newHeight > config.height) {
+        updateConfig("height", newHeight);
+      }
     }
   };
 

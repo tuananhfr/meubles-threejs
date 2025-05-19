@@ -4,28 +4,6 @@ import { useConfig } from "../../../context/ConfigContext";
 import DeleteModeComponent from "./DeleteModeComponent";
 import StandardReinforceModeComponent from "./StandardReinforceModeComponent";
 
-interface ShelfInfo {
-  index: number;
-  row: number;
-  column: number;
-  width: number;
-  height: number;
-  depth: number;
-  position: { x: number; y: number; z: number };
-  isVirtual: boolean;
-  isReinforced: boolean;
-  isStandard?: boolean;
-}
-
-interface ShelfHighlightsProps {
-  width: number;
-  height: number;
-  depth: number;
-  thickness: number;
-  columns: number;
-  rows: number;
-}
-
 const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
   width,
   height,

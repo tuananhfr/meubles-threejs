@@ -116,6 +116,8 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     return initialShelves;
   };
 
+  // Định nghĩa interface cho backPanelsData
+
   // Khởi tạo state
   const [config, setConfig] = useState<ConfigState>({
     width: initialWidth,
@@ -132,6 +134,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     columnWidths: initialColumnWidths,
     columnWidthsOption: "36 cm",
     shelves: initializeShelves(),
+    backPanels: {},
     editColumns: {
       isOpenMenu: false,
       isOpenOption: false,
@@ -157,6 +160,10 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     },
     editBackboard: {
       isOpenMenu: false,
+      isSurfaceTotal: false,
+      isDeleteTotal: true,
+      isSurfaceOption: false,
+      selectedBackboard: [],
     },
     cellHeight: initialcellHeight,
     cellWidth: initialcellWidth,
@@ -285,7 +292,6 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     // để tránh effect này kích hoạt khi nhân bản cột
   ]);
 
-  // Thêm vào ConfigProvider
   // useEffect để tự động cập nhật shelves khi columnHeights thay đổi
   useEffect(() => {
     // Chỉ tiếp tục nếu shelves đã được khởi tạo
@@ -295,19 +301,27 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     const updatedShelves = { ...config.shelves };
     let shelvesDirty = false;
 
-    // Duyệt qua từng cột
+    // 1. Xử lý thay đổi số cột - xóa kệ ở các cột vượt quá số cột mới
+    Object.keys(updatedShelves).forEach((key) => {
+      const col = parseInt(key.split("-")[1]);
+      if (col >= config.columns) {
+        delete updatedShelves[key];
+        shelvesDirty = true;
+      }
+    });
+
+    // 2. Xử lý thay đổi chiều cao
     for (let colIndex = 0; colIndex < config.columns; colIndex++) {
       // Tính số hàng dựa trên chiều cao
       const colHeight = config.columnHeights[colIndex];
       const shelfSpacing = config.cellHeight + config.thickness;
       const expectedRows = Math.max(
         1,
-        Math.floor((colHeight - 2 * config.thickness) / shelfSpacing) + 1
+        Math.round((colHeight - config.thickness) / shelfSpacing)
       );
 
       // Tính số hàng hiện có trong cột này
       const colShelves = Object.keys(updatedShelves).filter((key) => {
-        // Chỉ tính các kệ thật (không phải kệ ảo)
         const parts = key.split("-");
         const col = parseInt(parts[1]);
         return col === colIndex && !key.includes("virtual");
@@ -399,6 +413,122 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
   }, [
     config.columnHeights,
     config.columns,
+    config.cellHeight,
+    config.thickness,
+  ]);
+
+  // useEffect để xử lý thay đổi số cột (width)
+  useEffect(() => {
+    // Chỉ tiếp tục nếu shelves đã được khởi tạo
+    if (!config.shelves) return;
+
+    // Tạo một bản sao của shelves hiện tại
+    const updatedShelves = { ...config.shelves };
+    let shelvesDirty = false;
+
+    // Tìm cột lớn nhất trong shelves hiện tại
+    let maxColumnInShelves = -1;
+    Object.keys(updatedShelves).forEach((key) => {
+      const col = parseInt(key.split("-")[1]);
+      if (col > maxColumnInShelves) {
+        maxColumnInShelves = col;
+      }
+    });
+
+    // Nếu số cột hiện tại nhỏ hơn cột lớn nhất trong shelves
+    // => Đã giảm số cột, cần xóa shelves ở cột vượt quá
+    if (config.columns <= maxColumnInShelves) {
+      // Xóa tất cả các shelf thuộc cột >= config.columns
+      Object.keys(updatedShelves).forEach((key) => {
+        const col = parseInt(key.split("-")[1]);
+        if (col >= config.columns) {
+          delete updatedShelves[key];
+          shelvesDirty = true;
+        }
+      });
+    }
+    // Nếu số cột hiện tại lớn hơn cột lớn nhất đã có trong shelves
+    // => Đã tăng số cột, cần thêm shelves cho cột mới
+    else if (config.columns > maxColumnInShelves + 1) {
+      // Thêm các shelf mới cho cột mới
+      for (
+        let colIndex = maxColumnInShelves + 1;
+        colIndex < config.columns;
+        colIndex++
+      ) {
+        // Tính số hàng dựa trên chiều cao
+        const colHeight = config.columnHeights[colIndex];
+        const shelfSpacing = config.cellHeight + config.thickness;
+        const expectedRows = Math.max(
+          1,
+          Math.round((colHeight - config.thickness) / shelfSpacing)
+        );
+
+        // Thêm kệ đáy (row 0)
+        updatedShelves[`0-${colIndex}`] = {
+          key: `0-${colIndex}`,
+          row: 0,
+          column: colIndex,
+          isVirtual: false,
+          isStandard: true,
+          isReinforced: false,
+          isRemoved: false,
+        };
+
+        // Thêm kệ đỉnh
+        updatedShelves[`${expectedRows}-${colIndex}`] = {
+          key: `${expectedRows}-${colIndex}`,
+          row: expectedRows,
+          column: colIndex,
+          isVirtual: false,
+          isStandard: true,
+          isReinforced: false,
+          isRemoved: false,
+        };
+
+        // Thêm kệ ở giữa
+        for (let row = 1; row < expectedRows; row++) {
+          updatedShelves[`${row}-${colIndex}`] = {
+            key: `${row}-${colIndex}`,
+            row: row,
+            column: colIndex,
+            isVirtual: false,
+            isStandard: true,
+            isReinforced: false,
+            isRemoved: false,
+          };
+        }
+
+        // Thêm kệ ảo
+        for (let row = 0; row < expectedRows; row++) {
+          const virtualRow = row + 0.5;
+          if (virtualRow < expectedRows) {
+            updatedShelves[`${virtualRow}-${colIndex}-virtual`] = {
+              key: `${virtualRow}-${colIndex}-virtual`,
+              row: virtualRow,
+              column: colIndex,
+              isVirtual: true,
+              isStandard: false,
+              isReinforced: false,
+              isRemoved: false,
+            };
+          }
+        }
+
+        shelvesDirty = true;
+      }
+    }
+
+    // Chỉ cập nhật state nếu có thay đổi
+    if (shelvesDirty) {
+      setConfig((prevConfig) => ({
+        ...prevConfig,
+        shelves: updatedShelves,
+      }));
+    }
+  }, [
+    config.columns,
+    config.columnHeights,
     config.cellHeight,
     config.thickness,
   ]);

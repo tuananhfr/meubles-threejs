@@ -11,6 +11,7 @@ import OuterFrame from "./OuterFrame";
 import VerticalDividers from "./VerticalDividers";
 import HorizontalShelves from "./HorizontalShelves";
 import { useShelfCalculations } from "../../../hooks/useShelfCalculations";
+import BackboardHighlights from "./BackboardHighlights";
 
 interface ShelfModelProps {
   showMeasurements?: boolean;
@@ -38,6 +39,7 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
     rows,
 
     cellHeight,
+
     hasBackPanel,
     standardHeight,
     shelfBottomY,
@@ -47,7 +49,8 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
     getColumnXPosition,
   } = useShelfCalculations();
 
-  // Đảm bảo texture được cập nhật khi component unmount
+  console.log(config.backPanels);
+  console.log(config.shelves);
 
   return (
     <group ref={groupRef}>
@@ -136,6 +139,9 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
         columns={columns}
         rows={rows}
       />
+
+      {/* Backboard highlights */}
+      <BackboardHighlights />
     </group>
   );
 };

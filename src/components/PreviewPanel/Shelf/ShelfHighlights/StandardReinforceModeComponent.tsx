@@ -1,17 +1,6 @@
 import React from "react";
 import { Text } from "@react-three/drei";
 
-interface StandardReinforceComponentProps {
-  shelfPositions: any[];
-  selectedShelves: string[];
-  hoveredShelf: string | null;
-  depth: number;
-  handleShelfClick: (shelfInfo: any) => void;
-  isStandardMode: boolean;
-  isReinforcedMode: boolean;
-  hasResetRef: React.RefObject<boolean>;
-}
-
 const StandardReinforceModeComponent: React.FC<
   StandardReinforceComponentProps
 > = ({

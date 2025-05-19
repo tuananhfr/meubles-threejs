@@ -1,56 +1,106 @@
 import BackButton from "../../Button/BackButton";
 import { useConfig } from "../../context/ConfigContext";
+import SurfaceOptionComponent from "./SurfaceOptionComponent";
 
-const ShelfEditorPanel: React.FC = () => {
-  const { config, updateConfig } = useConfig();
+const BackboardEditorPanel: React.FC = () => {
+  const { config, updateConfig, batchUpdate } = useConfig();
 
   const handleBackClick = () => {
     updateConfig("editBackboard", {
-      ...config.editShelf,
+      ...config.editBackboard,
       isOpenMenu: false,
+      isSurfaceOption: false,
     });
   };
 
-  const handleStandardClick = () => {
-    updateConfig("editBackboard", {
-      ...config.editBackboard,
-      // isOpenEditStandard: true,
-      // isOpenEditReinforced: false,
-      // isOpenEditDelete: false,
-    });
+  const handleSurfaceTotal = () => {
+    if (config.editBackboard.isOpenMenu) {
+      // Tạo một đối tượng backPanels mới hoàn toàn
+      const updatedBackPanels = {} as Record<string, BackPanelsData>;
+
+      // Sao chép và cập nhật từng panel, bỏ qua các panel đã xóa vĩnh viễn
+      if (config.backPanels) {
+        Object.keys(config.backPanels).forEach((key) => {
+          const panel = config.backPanels[key];
+
+          // Bỏ qua các panel đã xóa vĩnh viễn
+          if (panel.permanentlyDeleted) {
+            // Vẫn giữ lại panel trong state, nhưng không thay đổi trạng thái isRemoved
+            updatedBackPanels[key] = { ...panel };
+            return;
+          }
+
+          // Cập nhật các panel khác
+          updatedBackPanels[key] = {
+            ...panel,
+            isRemoved: false,
+          };
+        });
+      }
+
+      // Cập nhật state trong một lần duy nhất
+      batchUpdate({
+        backPanels: updatedBackPanels,
+        editBackboard: {
+          ...config.editBackboard,
+          isSurfaceTotal: true,
+          isDeleteTotal: false,
+          isSurfaceOption: false,
+        },
+      });
+    }
   };
 
-  const handleReinforcedClick = () => {
-    updateConfig("editBackboard", {
-      ...config.editBackboard,
-      // isOpenEditStandard: false,
-      // isOpenEditReinforced: true,
-      // isOpenEditDelete: false,
-    });
+  const handleDeleteTotal = () => {
+    if (config.editBackboard.isOpenMenu) {
+      // Tạo một đối tượng backPanels mới hoàn toàn
+      const updatedBackPanels = {} as Record<string, BackPanelsData>;
+
+      // Sao chép và cập nhật từng panel
+      if (config.backPanels) {
+        Object.keys(config.backPanels).forEach((key) => {
+          const panel = config.backPanels[key];
+
+          // Không thay đổi trạng thái isRemoved của các panel đã xóa vĩnh viễn
+          if (panel.permanentlyDeleted) {
+            updatedBackPanels[key] = { ...panel };
+            return;
+          }
+
+          // Đánh dấu các panel khác là đã xóa
+          updatedBackPanels[key] = {
+            ...panel,
+            isRemoved: true,
+          };
+        });
+      }
+
+      // Cập nhật state trong một lần duy nhất
+      batchUpdate({
+        backPanels: updatedBackPanels,
+        editBackboard: {
+          ...config.editBackboard,
+          isSurfaceTotal: false,
+          isDeleteTotal: true,
+          isSurfaceOption: false,
+        },
+      });
+    }
   };
 
-  const handleRemoveClick = () => {
+  const handleSurfaceOption = () => {
     updateConfig("editBackboard", {
       ...config.editBackboard,
-      // isOpenEditStandard: false,
-      // isOpenEditReinforced: false,
-      // isOpenEditDelete: true,
+
+      isSurfaceOption: true,
     });
   };
 
   const renderContent = () => {
-    // Hiển thị components con nếu các trạng thái tương ứng được kích hoạt
-    if (config.editShelf?.isOpenEditStandard) {
-      return "StandardShelfComponent";
+    if (config.editBackboard?.isSurfaceOption) {
+      return <SurfaceOptionComponent />;
     }
 
-    if (config.editShelf?.isOpenEditReinforced) {
-      return "ReinforcedShelfComponent";
-    }
-
-    if (config.editShelf?.isOpenEditDelete) {
-      return "RemoveShelfComponent";
-    }
     return (
       <div>
         <div className="my-2 text-secondary">
@@ -62,7 +112,7 @@ const ShelfEditorPanel: React.FC = () => {
           <div className="col">
             <button
               className="btn btn-outline-primary rounded p-2 text-center w-100 h-100 d-flex flex-column justify-content-center align-items-center"
-              onClick={handleStandardClick}
+              onClick={handleSurfaceTotal}
             >
               <div className="mb-2">
                 <svg
@@ -84,14 +134,14 @@ const ShelfEditorPanel: React.FC = () => {
                   </g>
                 </svg>
               </div>
-              <div>Tablettes standards</div>
+              <div>Surface totale</div>
             </button>
           </div>
 
           <div className="col">
             <button
               className="btn btn-outline-primary rounded p-2 text-center w-100 h-100 d-flex flex-column justify-content-center align-items-center"
-              onClick={handleReinforcedClick}
+              onClick={handleDeleteTotal}
             >
               <div className="mb-2">
                 <svg
@@ -113,13 +163,13 @@ const ShelfEditorPanel: React.FC = () => {
                   </g>
                 </svg>
               </div>
-              <div>Tablettes renforcées</div>
+              <div>Retirer</div>
             </button>
           </div>
           <div className="col">
             <button
               className="btn btn-outline-primary rounded p-2 text-center w-100 h-100 d-flex flex-column justify-content-center align-items-center"
-              onClick={handleRemoveClick}
+              onClick={handleSurfaceOption}
             >
               <div className="mb-2">
                 <svg
@@ -141,7 +191,7 @@ const ShelfEditorPanel: React.FC = () => {
                   </g>
                 </svg>
               </div>
-              <div>Retirer</div>
+              <div>Placement ciblé</div>
             </button>
           </div>
         </div>
@@ -159,4 +209,4 @@ const ShelfEditorPanel: React.FC = () => {
   );
 };
 
-export default ShelfEditorPanel;
+export default BackboardEditorPanel;

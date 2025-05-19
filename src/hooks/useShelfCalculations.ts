@@ -19,7 +19,7 @@ export const useShelfCalculations = () => {
   const cellHeight = config.cellHeight / 100;
 
   // Kiểm tra nếu có tấm sau
-  const hasBackPanel = config.position === "Suspendu";
+  const hasBackPanel = config.editBackboard.isSurfaceTotal;
 
   // Tính toán chiều cao chuẩn dựa trên số hàng, cellHeight và thickness
   // Chiều cao tổng = rows * cellHeight + (rows + 1) * thickness

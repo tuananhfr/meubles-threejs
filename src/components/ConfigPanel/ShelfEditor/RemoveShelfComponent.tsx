@@ -1,14 +1,21 @@
+import React from "react";
 import { useConfig } from "../../context/ConfigContext";
+import { useBackPanelManager } from "../../../hooks/useBackPanelManager";
 
 const RemoveShelfComponent: React.FC = () => {
-  const { config, updateConfig } = useConfig();
+  const { config, batchUpdate } = useConfig();
+  const { handleBackPanelOnShelfRemove } = useBackPanelManager();
 
   const handleBack = () => {
-    updateConfig("editShelf", {
-      ...config.editShelf,
-      isOpenEditDelete: false,
+    batchUpdate({
+      editShelf: {
+        ...config.editShelf,
+        isOpenEditDelete: false,
+      },
     });
   };
+
+  // Hàm chính để xử lý xóa kệ
   const handleConfirmRemove = () => {
     // Lấy danh sách kệ đã chọn
     const selectedShelves = config.editShelf?.selectedShelves || [];
@@ -20,36 +27,58 @@ const RemoveShelfComponent: React.FC = () => {
     // Sao chép sâu đối tượng shelves
     const updatedShelves = JSON.parse(JSON.stringify(config.shelves || {}));
 
-    // Xử lý từng kệ đã chọn
+    // Xử lý từng kệ đã chọn để cập nhật trạng thái shelves
     selectedShelves.forEach((shelf) => {
-      // Format key cho kệ - GIỮ NGUYÊN ĐỊNH DẠNG
-      const key = shelf.isVirtual
-        ? `${shelf.row}-${shelf.column}-virtual`
-        : `${shelf.row}-${shelf.column}`;
+      // Xử lý kệ ảo
+      if (shelf.isVirtual) {
+        // Format key cho kệ ảo
+        const virtualKey = `${shelf.row}-${shelf.column}-virtual`;
 
-      // Format key thật và key ảo cho việc xử lý
+        // Đánh dấu kệ ảo là đã xóa
+        if (!updatedShelves[virtualKey]) {
+          updatedShelves[virtualKey] = {
+            key: virtualKey,
+            row: shelf.row,
+            column: shelf.column,
+            isVirtual: true,
+            isStandard: false,
+            isReinforced: false,
+            isRemoved: false,
+          };
+        }
 
+        updatedShelves[virtualKey].isRemoved = true;
+        updatedShelves[virtualKey].isStandard = false;
+        updatedShelves[virtualKey].isReinforced = false;
+
+        return; // Không xử lý kệ thật nếu đây là kệ ảo
+      }
+
+      // Format key cho kệ thật
+      const shelfKey = `${shelf.row}-${shelf.column}`;
       const virtualKey = `${shelf.row}-${shelf.column}-virtual`;
 
-      // 1. Đánh dấu kệ hiện tại là đã xóa
-      if (!updatedShelves[key]) {
+      // Đánh dấu kệ hiện tại là đã xóa
+      if (!updatedShelves[shelfKey]) {
         // Tạo mới nếu chưa tồn tại
-        updatedShelves[key] = {
-          key: key,
+        updatedShelves[shelfKey] = {
+          key: shelfKey,
           row: shelf.row,
           column: shelf.column,
-          isVirtual: shelf.isVirtual,
+          isVirtual: false,
+          isStandard: true,
+          isReinforced: false,
+          isRemoved: false,
         };
       }
 
       // Đánh dấu kệ là đã xóa và không còn là kệ tiêu chuẩn hoặc tăng cường
-      updatedShelves[key].isRemoved = true;
-      updatedShelves[key].isStandard = false;
-      updatedShelves[key].isReinforced = false;
+      updatedShelves[shelfKey].isRemoved = true;
+      updatedShelves[shelfKey].isStandard = false;
+      updatedShelves[shelfKey].isReinforced = false;
 
-      // 2. Xử lý đặc biệt với kệ nửa hàng thật (row không phải số nguyên)
-      // Nếu là kệ thật nửa hàng, cũng đánh dấu kệ ảo tương ứng là đã xóa
-      if (!shelf.isVirtual && shelf.row % 1 !== 0) {
+      // Xử lý đặc biệt với kệ nửa hàng thật
+      if (shelf.row % 1 !== 0) {
         if (!updatedShelves[virtualKey]) {
           // Tạo mới kệ ảo nếu chưa tồn tại
           updatedShelves[virtualKey] = {
@@ -57,6 +86,9 @@ const RemoveShelfComponent: React.FC = () => {
             row: shelf.row,
             column: shelf.column,
             isVirtual: true,
+            isStandard: false,
+            isReinforced: false,
+            isRemoved: false,
           };
         }
 
@@ -67,18 +99,25 @@ const RemoveShelfComponent: React.FC = () => {
       }
     });
 
-    // Cập nhật lại config
-    updateConfig("shelves", updatedShelves);
+    // Sử dụng hook useBackPanelManager để xử lý backPanels
+    const updatedBackPanels = handleBackPanelOnShelfRemove(
+      JSON.parse(JSON.stringify(config.backPanels || {}))
+    );
 
-    // Đóng panel xóa và reset trạng thái chọn
-    updateConfig("editShelf", {
-      ...config.editShelf,
-      isOpenMenu: true,
-      isOpenOption: false,
-      isOpenEditDelete: false,
-      selectedShelves: [],
+    // Cập nhật lại config
+    batchUpdate({
+      shelves: updatedShelves,
+      backPanels: updatedBackPanels,
+      editShelf: {
+        ...config.editShelf,
+        isOpenMenu: true,
+        isOpenOption: false,
+        isOpenEditDelete: false,
+        selectedShelves: [],
+      },
     });
   };
+
   const selectedCount = config.editShelf?.selectedShelves?.length || 0;
   const virtualCount =
     config.editShelf?.selectedShelves?.filter((shelf) => shelf.isVirtual)

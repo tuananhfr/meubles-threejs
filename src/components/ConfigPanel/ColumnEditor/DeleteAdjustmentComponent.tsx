@@ -24,11 +24,120 @@ const DeleteColumnComponent: React.FC = () => {
       delete newColumnWidths[config.columns - 1];
       delete newColumnHeights[config.columns - 1];
 
-      // 4. Cập nhật tất cả các trạng thái cùng một lúc
+      // 4. Xử lý backpanels
+      const newBackPanels = { ...config.backPanels };
+      const existingBackPanels = config.backPanels || {};
+
+      // 4.1 Tạo danh sách các panel mới cần thêm vào sau khi dịch chuyển
+      const newPanelsToAdd: Record<string, BackPanelsData> = {};
+
+      // 4.2 Xóa tất cả các panel thuộc cột bị xóa
+      Object.keys(existingBackPanels).forEach((key) => {
+        const panel = existingBackPanels[key];
+        if (panel.column === colIndex) {
+          delete newBackPanels[key];
+        }
+      });
+
+      // 4.3 Dịch chuyển tất cả các panel ở cột phía sau cột bị xóa
+      Object.keys(existingBackPanels).forEach((key) => {
+        const panel = { ...existingBackPanels[key] };
+
+        // Nếu panel thuộc cột phía sau cột bị xóa
+        if (panel.column > colIndex) {
+          // Tính toán vị trí cột mới (giảm 1)
+          const newColIndex = panel.column - 1;
+
+          // Tạo key mới với cột đã dịch
+          const newKey = `back-panel-${panel.row}-${newColIndex}`;
+
+          // Tính toán vị trí X mới
+          // Cần tính toán vị trí mới dựa trên chiều rộng của cột bị xóa
+          const deletedColWidth =
+            config.columnWidths[colIndex] || config.cellWidth;
+
+          // Cập nhật thông tin panel
+          panel.key = newKey;
+          panel.column = newColIndex;
+
+          // Cập nhật vị trí X (dịch sang trái)
+          panel.position = [
+            panel.position[0] - deletedColWidth, // Dịch X theo chiều rộng của cột bị xóa
+            panel.position[1], // Giữ nguyên Y
+            panel.position[2], // Giữ nguyên Z
+          ];
+
+          // Thêm vào danh sách panel mới
+          newPanelsToAdd[newKey] = panel;
+
+          // Xóa panel cũ
+          delete newBackPanels[key];
+        }
+      });
+
+      // 4.4 Kết hợp tất cả các panel còn lại
+      const updatedBackPanels: Record<string, BackPanelsData> = {
+        ...newBackPanels,
+        ...newPanelsToAdd,
+      };
+
+      // 5. Xử lý shelves
+      const newShelves = { ...config.shelves };
+      const existingShelves = config.shelves || {};
+
+      // 5.1 Tạo danh sách các shelf mới sau khi dịch chuyển
+      const newShelvesToAdd: Record<string, ShelfData> = {};
+
+      // 5.2 Xóa tất cả các shelf thuộc cột bị xóa
+      Object.keys(existingShelves).forEach((key) => {
+        const shelf = existingShelves[key];
+        if (shelf.column === colIndex) {
+          delete newShelves[key];
+        }
+      });
+
+      // 5.3 Dịch chuyển tất cả các shelf ở cột phía sau cột bị xóa
+      Object.keys(existingShelves).forEach((key) => {
+        const shelf = { ...existingShelves[key] };
+
+        // Nếu shelf thuộc cột phía sau cột bị xóa
+        if (shelf.column > colIndex) {
+          // Tính toán vị trí cột mới (giảm 1)
+          const newColIndex = shelf.column - 1;
+
+          // Tạo key mới với cột đã dịch
+          let newKey: string;
+          if (key.includes("virtual")) {
+            newKey = `${shelf.row}-${newColIndex}-virtual`;
+          } else {
+            newKey = `${shelf.row}-${newColIndex}`;
+          }
+
+          // Cập nhật thông tin shelf
+          shelf.key = newKey;
+          shelf.column = newColIndex;
+
+          // Thêm vào danh sách shelf mới
+          newShelvesToAdd[newKey] = shelf;
+
+          // Xóa shelf cũ
+          delete newShelves[key];
+        }
+      });
+
+      // 5.4 Kết hợp tất cả các shelf còn lại
+      const updatedShelves = {
+        ...newShelves,
+        ...newShelvesToAdd,
+      };
+
+      // 6. Cập nhật tất cả các trạng thái cùng một lúc
       batchUpdate({
         columnWidths: newColumnWidths,
         columnHeights: newColumnHeights,
         columns: config.columns - 1,
+        backPanels: updatedBackPanels,
+        shelves: updatedShelves,
         editColumns: {
           ...config.editColumns,
           isOpenEditDelete: false,

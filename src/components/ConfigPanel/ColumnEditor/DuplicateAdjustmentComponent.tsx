@@ -28,11 +28,145 @@ const DuplicateColumnComponent: React.FC = () => {
       newColumnWidths[colIndex + 1] = sourceWidth;
       newColumnHeights[colIndex + 1] = sourceHeight;
 
-      // 5. Cập nhật tất cả các trạng thái cùng một lúc để tránh render nhiều lần
+      // 5. Xử lý backpanels
+      const newBackPanels = { ...config.backPanels };
+      const existingBackPanels = config.backPanels || {};
+
+      // 5.1 Tạo danh sách các panel mới cần thêm vào
+      const newPanelsToAdd: Record<string, BackPanelsData> = {};
+
+      // 5.2 Dịch chuyển tất cả các panel ở cột phía sau
+      Object.keys(existingBackPanels).forEach((key) => {
+        const panel = { ...existingBackPanels[key] };
+
+        // Nếu panel thuộc cột phía sau cột được sao chép
+        if (panel.column > colIndex) {
+          // Tạo key mới với cột đã dịch
+          const newKey = `back-panel-${panel.row}-${panel.column + 1}`;
+
+          // Cập nhật thông tin panel
+          panel.key = newKey;
+          panel.column = panel.column + 1;
+
+          // Cập nhật vị trí X (dịch sang phải)
+          panel.position = [
+            panel.position[0] + sourceWidth, // Dịch X theo chiều rộng của cột được sao chép
+            panel.position[1], // Giữ nguyên Y
+            panel.position[2], // Giữ nguyên Z
+          ];
+
+          // Thêm vào danh sách panel mới
+          newPanelsToAdd[newKey] = panel;
+
+          // Xóa panel cũ
+          delete newBackPanels[key];
+        }
+      });
+
+      // 5.3 Sao chép các panel từ cột được chọn sang cột mới
+      Object.keys(existingBackPanels).forEach((key) => {
+        const panel = existingBackPanels[key];
+
+        // Nếu panel thuộc cột được sao chép
+        if (panel.column === colIndex) {
+          // Tạo key mới cho panel được sao chép
+          const newKey = `back-panel-${panel.row}-${colIndex + 1}`;
+
+          // Sao chép thông tin panel
+          const duplicatedPanel: BackPanelsData = {
+            ...panel,
+            key: newKey,
+            column: colIndex + 1,
+            position: [
+              panel.position[0] + sourceWidth, // Dịch X theo chiều rộng của cột
+              panel.position[1], // Giữ nguyên Y
+              panel.position[2], // Giữ nguyên Z
+            ],
+          };
+
+          // Thêm vào danh sách panel mới
+          newPanelsToAdd[newKey] = duplicatedPanel;
+        }
+      });
+
+      // 5.4 Kết hợp tất cả các panel
+      const updatedBackPanels = {
+        ...newBackPanels,
+        ...newPanelsToAdd,
+      };
+
+      // 6. Xử lý shelves
+      const newShelves = { ...config.shelves };
+      const existingShelves = config.shelves || {};
+
+      // 6.1 Tạo danh sách các shelf mới cần thêm vào
+      const newShelvesToAdd: Record<string, ShelfData> = {};
+
+      // 6.2 Dịch chuyển tất cả các shelf ở cột phía sau
+      Object.keys(existingShelves).forEach((key) => {
+        const shelf = { ...existingShelves[key] };
+
+        // Nếu shelf thuộc cột phía sau cột được sao chép
+        if (shelf.column > colIndex) {
+          // Tạo key mới với cột đã dịch
+          let newKey: string;
+          if (key.includes("virtual")) {
+            newKey = `${shelf.row}-${shelf.column + 1}-virtual`;
+          } else {
+            newKey = `${shelf.row}-${shelf.column + 1}`;
+          }
+
+          // Cập nhật thông tin shelf
+          shelf.key = newKey;
+          shelf.column = shelf.column + 1;
+
+          // Thêm vào danh sách shelf mới
+          newShelvesToAdd[newKey] = shelf;
+
+          // Xóa shelf cũ
+          delete newShelves[key];
+        }
+      });
+
+      // 6.3 Sao chép các shelf từ cột được chọn sang cột mới
+      Object.keys(existingShelves).forEach((key) => {
+        const shelf = existingShelves[key];
+
+        // Nếu shelf thuộc cột được sao chép
+        if (shelf.column === colIndex) {
+          // Tạo key mới cho shelf được sao chép
+          let newKey: string;
+          if (key.includes("virtual")) {
+            newKey = `${shelf.row}-${colIndex + 1}-virtual`;
+          } else {
+            newKey = `${shelf.row}-${colIndex + 1}`;
+          }
+
+          // Sao chép thông tin shelf
+          const duplicatedShelf: ShelfData = {
+            ...shelf,
+            key: newKey,
+            column: colIndex + 1,
+          };
+
+          // Thêm vào danh sách shelf mới
+          newShelvesToAdd[newKey] = duplicatedShelf;
+        }
+      });
+
+      // 6.4 Kết hợp tất cả các shelf
+      const updatedShelves = {
+        ...newShelves,
+        ...newShelvesToAdd,
+      };
+
+      // 7. Cập nhật tất cả các trạng thái cùng một lúc để tránh render nhiều lần
       batchUpdate({
         columnWidths: newColumnWidths,
         columnHeights: newColumnHeights,
         columns: config.columns + 1,
+        backPanels: updatedBackPanels,
+        shelves: updatedShelves,
         editColumns: {
           ...config.editColumns,
           isOpenEditDuplicate: false,

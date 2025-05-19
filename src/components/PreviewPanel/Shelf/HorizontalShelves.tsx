@@ -1,23 +1,8 @@
 // components/HorizontalShelves.tsx
 import React from "react";
-import * as THREE from "three";
+
 import { useConfig } from "../../context/ConfigContext";
 import { Text } from "@react-three/drei";
-
-interface HorizontalShelvesProps {
-  columns: number;
-  rows: number; // Thêm tham số rows để biết tổng số hàng
-  depth: number;
-  thickness: number;
-  cellHeight: number;
-  shelfBottomY: number;
-  texture: THREE.Texture;
-  reinforcedTexture?: THREE.Texture; // Texture cho kệ tăng cường
-  standardTexture?: THREE.Texture; // Texture cho kệ tiêu chuẩn
-  getColumnHeight: (colIndex: number) => number;
-  getColumnWidth: (colIndex: number) => number;
-  getColumnXPosition: (colIndex: number) => number;
-}
 
 const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
   columns,
@@ -222,7 +207,7 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
         }
 
         // Vị trí Y bắt đầu từ đáy lên
-        const rowY = shelfBottomY + thickness + row * shelfSpacing;
+        const rowY = shelfBottomY + thickness / 2 + row * shelfSpacing;
 
         // Chỉ vẽ kệ nếu nằm trong phạm vi chiều cao của cột
         if (rowY < shelfBottomY + colHeight - thickness) {
@@ -405,9 +390,22 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
         // Nếu không phải kệ chuẩn hoặc kệ tăng cường, bỏ qua
         if (!isReinforced && !isStandard) continue;
 
-        // Vị trí Y của kệ ảo
-        const rowY = shelfBottomY + thickness + row * shelfSpacing;
+        // Vị trí Y của kệ ảo - đã sửa để đặt chính xác ở giữa
+        let rowY;
+        if (row % 1 === 0) {
+          // Kệ nguyên hàng - giữ nguyên công thức hiện tại
+          rowY = shelfBottomY + thickness / 2 + row * shelfSpacing;
+        } else {
+          // Kệ nửa hàng (ảo) - tính toán vị trí chính giữa
+          const lowerRow = Math.floor(row);
 
+          // Vị trí giữa = vị trí kệ dưới + 1/2 khoảng cách giữa hai kệ
+          rowY =
+            shelfBottomY +
+            thickness / 2 +
+            lowerRow * shelfSpacing +
+            shelfSpacing / 2;
+        }
         // Chỉ vẽ kệ nếu nằm trong phạm vi chiều cao của cột
         if (
           rowY > shelfBottomY + thickness &&
@@ -421,8 +419,6 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
                   map={texture}
                   roughness={0.7}
                   metalness={0.1}
-                  transparent={true}
-                  opacity={0.7}
                 />
               </mesh>
               {isReinforced && (

@@ -1,15 +1,4 @@
 import React from "react";
-import * as THREE from "three";
-
-interface VerticalDividersProps {
-  columns: number;
-  depth: number;
-  thickness: number;
-  shelfBottomY: number;
-  texture: THREE.Texture;
-  getColumnHeight: (colIndex: number) => number;
-  getColumnXPosition: (colIndex: number) => number;
-}
 
 const VerticalDividers: React.FC<VerticalDividersProps> = ({
   columns,

@@ -1,16 +1,6 @@
 import React, { useMemo } from "react";
 import { Text } from "@react-three/drei";
 
-interface DeleteModeComponentProps {
-  shelfPositions: any[];
-  selectedShelves: string[];
-  hoveredShelf: string | null;
-  depth: number;
-  handleShelfClick: (shelfInfo: any) => void;
-  isStandardOrReinforcedShelf: (shelfId: string) => boolean;
-  hasResetRef: React.RefObject<boolean>;
-}
-
 const DeleteModeComponent: React.FC<DeleteModeComponentProps> = ({
   shelfPositions,
   selectedShelves,

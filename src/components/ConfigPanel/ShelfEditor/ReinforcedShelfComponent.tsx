@@ -1,22 +1,22 @@
 import React from "react";
 
 import { useConfig } from "../../context/ConfigContext";
+import { useBackPanelManager } from "../../../hooks/useBackPanelManager";
 
 const ReinforcedShelfComponent: React.FC = () => {
   const { config, updateConfig } = useConfig();
+  const { handleBackPanelOnShelfAdd } = useBackPanelManager();
 
   // Lấy danh sách kệ đã chọn
   const selectedShelves = config.editShelf?.selectedShelves || [];
 
   // Kiểm tra những kệ nào đã là kệ tăng cường
-  const isReinforcedShelf = (shelfInfo: any) => {
+  const isReinforcedShelf = (shelfInfo: ShelfInfo) => {
     return shelfInfo.isReinforced;
   };
 
   const handleApply = () => {
     // Lấy danh sách kệ đã chọn
-    const selectedShelves = config.editShelf?.selectedShelves || [];
-
     if (!selectedShelves.length) {
       handleCancel();
       return;
@@ -42,6 +42,10 @@ const ReinforcedShelfComponent: React.FC = () => {
           key: keyToUpdate,
           row: row,
           column: column,
+          isVirtual: false,
+          isStandard: false,
+          isReinforced: false,
+          isRemoved: false,
         };
       }
 
@@ -52,8 +56,14 @@ const ReinforcedShelfComponent: React.FC = () => {
       updatedShelves[keyToUpdate].isRemoved = false;
     });
 
+    // Sử dụng hook useBackPanelManager để xử lý backPanels
+    const updatedBackPanels = handleBackPanelOnShelfAdd(
+      JSON.parse(JSON.stringify(config.backPanels || {}))
+    );
+
     // Cập nhật config
     updateConfig("shelves", updatedShelves);
+    updateConfig("backPanels", updatedBackPanels);
 
     // Cập nhật trạng thái chỉnh sửa
     updateConfig("editShelf", {
@@ -65,6 +75,7 @@ const ReinforcedShelfComponent: React.FC = () => {
     // Đóng panel
     handleCancel();
   };
+
   const handleCancel = () => {
     updateConfig("editShelf", {
       ...config.editShelf,
