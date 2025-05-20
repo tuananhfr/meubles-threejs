@@ -14,7 +14,7 @@ import { useConfig } from "../context/ConfigContext";
 import TextureSelector from "./section/TextureSelector";
 
 const ConfigPanel: React.FC = () => {
-  const { config, updateConfig } = useConfig();
+  const { config, updateConfig, batchUpdate } = useConfig();
 
   // Logic để hiển thị menu chính
   const isMainMenuOpen =
@@ -64,6 +64,31 @@ const ConfigPanel: React.FC = () => {
     updateConfig("height", value);
   };
 
+  const handleChangePoses = (value: string) => {
+    // Nếu chọn "Suspendu", reset chân kệ về "sans_pieds" và điều chỉnh chiều cao
+    if (value === "Suspendu") {
+      // Lưu lại chiều cao chân kệ hiện tại
+      const currentFeetHeight = config.editFeet?.heightFeet || 0;
+
+      // Tính toán chiều cao mới (loại bỏ chiều cao chân kệ)
+      const newHeight = config.height - currentFeetHeight;
+
+      // Cập nhật cả position, editFeet và height cùng lúc
+      batchUpdate({
+        position: value as "Au sol" | "Suspendu",
+        editFeet: {
+          ...config.editFeet,
+          feetType: "sans_pieds",
+          heightFeet: 0,
+          isOpenMenu: false,
+        },
+        height: newHeight, // Cập nhật height để loại bỏ chiều cao chân kệ
+      });
+    } else {
+      // Nếu không phải "Suspendu", chỉ cập nhật position
+      updateConfig("position", value as "Au sol" | "Suspendu");
+    }
+  };
   return (
     <>
       {/* Hiển thị ColumnEditorPanel nếu editColumns.isOpenMenu = true */}
@@ -97,8 +122,8 @@ const ConfigPanel: React.FC = () => {
           <DimensionControl
             label="Hauteur"
             value={config.height}
-            min={40}
-            max={420}
+            min={40 + (config.editFeet?.heightFeet || 0)}
+            max={420 + (config.editFeet?.heightFeet || 0)}
             step={38}
             onChange={(value: number) => handleChangeHeight(value)}
           />
@@ -119,9 +144,7 @@ const ConfigPanel: React.FC = () => {
             <OptionButtons
               options={["Au sol", "Suspendu"]}
               activeOption={config.position}
-              onChange={(value: string) =>
-                updateConfig("position", value as "Au sol" | "Suspendu")
-              }
+              onChange={handleChangePoses}
               showInfo={true}
             />
           </OptionSection>
@@ -131,12 +154,14 @@ const ConfigPanel: React.FC = () => {
             actionText="Éditer"
             onActionClick={handleEditColumns}
           />
-          {/* Pieds */}
-          <OptionSection
-            title="Pieds"
-            actionText="Ajouter/Supprimer"
-            onActionClick={handleEditFeet}
-          />
+          {/* Pieds - Only show if position is "Au sol" */}
+          {config.position === "Au sol" && (
+            <OptionSection
+              title="Pieds"
+              actionText="Ajouter/Supprimer"
+              onActionClick={handleEditFeet}
+            />
+          )}
           {/* Façades */}
           <OptionSection
             title="Façades"

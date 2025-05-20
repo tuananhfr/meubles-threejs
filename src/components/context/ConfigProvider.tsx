@@ -154,6 +154,8 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     },
     editFeet: {
       isOpenMenu: false,
+      feetType: "sans_pieds",
+      heightFeet: 0,
     },
     editFacade: {
       isOpenMenu: false,
@@ -207,6 +209,33 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
           columnHeights: updatedColumnHeights,
         };
       });
+    } else if (key === "editFeet") {
+      // Xử lý khi cập nhật thông tin chân kệ
+      const newFeetInfo = value as ConfigState["editFeet"];
+      const oldFeetInfo = config.editFeet;
+
+      // Nếu chiều cao chân thay đổi
+      if (newFeetInfo.heightFeet !== oldFeetInfo.heightFeet) {
+        // Cập nhật heightFeet thay đổi chiều cao tổng thể mà không thay đổi số hàng
+        const heightDifference =
+          newFeetInfo.heightFeet - oldFeetInfo.heightFeet;
+
+        setConfig((prevConfig) => {
+          return {
+            ...prevConfig,
+            [key]: newFeetInfo,
+            height: prevConfig.height + heightDifference,
+            // KHÔNG cập nhật columnHeights vì chúng ta muốn giữ nguyên cấu trúc kệ
+            // Chỉ tăng chiều cao tổng thể
+          };
+        });
+      } else {
+        // Nếu không thay đổi chiều cao chân, xử lý bình thường
+        setConfig((prevConfig) => ({
+          ...prevConfig,
+          [key]: value,
+        }));
+      }
     } else if (key === "columnHeights") {
       // Xử lý khi cập nhật chiều cao cột
       const updatedColumnHeights = value as ColumnDimensions;
@@ -220,10 +249,13 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
           maxHeight = Math.max(maxHeight, columnHeight);
         }
 
+        // Thêm chiều cao chân vào tổng chiều cao
+        const totalHeight = maxHeight + (prevConfig.editFeet?.heightFeet || 0);
+
         return {
           ...prevConfig,
           [key]: updatedColumnHeights,
-          height: maxHeight, // Cập nhật height thành chiều cao lớn nhất
+          height: totalHeight, // Tổng chiều cao bao gồm cả chân kệ
         };
       });
     } else {
@@ -237,6 +269,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
   // Effect để tính số cột, hàng dựa vào chiều rộng, cao
   // Lưu ý: Chúng ta chỉ muốn kích hoạt effect này khi width, height hoặc thickness thay đổi
   // KHÔNG kích hoạt khi columns hoặc rows thay đổi do việc nhân bản cột
+
   useEffect(() => {
     // Cập nhật số cột dựa trên chiều rộng
     const newColumns = Math.max(
@@ -244,14 +277,18 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
       Math.round((config.width - config.thickness * 2) / 38)
     );
 
-    // Cập nhật số hàng dựa trên chiều cao
+    // Tính chiều cao hiệu dụng (trừ đi chiều cao chân nếu có)
+    const effectiveHeight = config.editFeet?.heightFeet
+      ? config.height - config.editFeet.heightFeet
+      : config.height;
+
+    // Cập nhật số hàng dựa trên chiều cao hiệu dụng (không tính phần chân)
     const newRows = Math.max(
       1,
-      Math.round((config.height - config.thickness) / 38)
+      Math.round((effectiveHeight - config.thickness) / 38)
     );
 
     // Kiểm tra xem có cần cập nhật không
-    // Chỉ cập nhật nếu số cột hoặc số hàng thay đổi do thay đổi chiều rộng hoặc chiều cao
     if (config.columns !== newColumns || config.rows !== newRows) {
       // Cập nhật số cột và số hàng
       setConfig((prev) => {
@@ -265,13 +302,21 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
           (prev.width - totalThickness) / newColumns
         );
 
+        // Chiều cao hiệu dụng (không tính phần chân)
+        const effectiveHeight = prev.editFeet?.heightFeet
+          ? prev.height - prev.editFeet.heightFeet
+          : prev.height;
+
         // Khởi tạo giá trị cho từng cột mới
         for (let i = 0; i < newColumns; i++) {
-          // Sử dụng giá trị cũ nếu có, nếu không thì dùng giá trị mặc định
-          updatedColumnHeights[i] =
+          // Sử dụng giá trị cũ nếu có, nếu không thì dùng giá trị hiệu dụng
+          const oldHeight =
             i < prev.columns && prev.columnHeights[i]
               ? prev.columnHeights[i]
-              : prev.height;
+              : effectiveHeight;
+
+          // Nếu giá trị cũ đã tính vào chiều cao chân, giữ nguyên; ngược lại, điều chỉnh
+          updatedColumnHeights[i] = oldHeight;
           updatedColumnWidths[i] = newColumnWidth; // Luôn cập nhật chiều rộng để phù hợp
         }
 
@@ -288,8 +333,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     config.width,
     config.height,
     config.thickness,
-    // Đã loại bỏ config.columns và config.rows từ dependencies
-    // để tránh effect này kích hoạt khi nhân bản cột
+    config.editFeet?.heightFeet, // Thêm heightFeet vào dependencies
   ]);
 
   // useEffect để tự động cập nhật shelves khi columnHeights thay đổi

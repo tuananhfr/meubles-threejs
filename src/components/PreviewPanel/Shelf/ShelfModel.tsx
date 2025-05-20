@@ -12,6 +12,7 @@ import VerticalDividers from "./VerticalDividers";
 import HorizontalShelves from "./HorizontalShelves";
 import { useShelfCalculations } from "../../../hooks/useShelfCalculations";
 import BackboardHighlights from "./BackboardHighlights";
+import ShelfFeet from "./ShelfFeet";
 
 interface ShelfModelProps {
   showMeasurements?: boolean;
@@ -40,7 +41,6 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
 
     cellHeight,
 
-    hasBackPanel,
     standardHeight,
     shelfBottomY,
     totalWidth,
@@ -48,9 +48,6 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
     getColumnWidth,
     getColumnXPosition,
   } = useShelfCalculations();
-
-  console.log(config.backPanels);
-  console.log(config.shelves);
 
   return (
     <group ref={groupRef}>
@@ -63,7 +60,6 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
           thickness={thickness}
           totalWidth={totalWidth}
           shelfBottomY={shelfBottomY}
-          hasBackPanel={hasBackPanel}
           texture={texture}
           getColumnHeight={getColumnHeight}
           getColumnWidth={getColumnWidth}
@@ -91,6 +87,14 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
           getColumnHeight={getColumnHeight}
           getColumnWidth={getColumnWidth}
           getColumnXPosition={getColumnXPosition}
+        />
+
+        {/* Chân kệ */}
+        <ShelfFeet
+          totalWidth={totalWidth}
+          depth={depth}
+          shelfBottomY={shelfBottomY}
+          texture={texture}
         />
       </group>
 

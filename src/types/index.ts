@@ -88,6 +88,8 @@ declare global {
   }
   interface EditFeet {
     isOpenMenu: boolean;
+    feetType: string;
+    heightFeet: number;
   }
   interface EditFacade {
     isOpenMenu: boolean;
@@ -227,7 +229,7 @@ declare global {
     thickness: number;
     totalWidth: number;
     shelfBottomY: number;
-    hasBackPanel: boolean;
+
     texture: THREE.Texture;
     getColumnHeight: (colIndex: number) => number;
     getColumnWidth: (colIndex: number) => number;

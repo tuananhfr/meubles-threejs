@@ -32,8 +32,9 @@ const HeightAdjustmentComponent: React.FC = () => {
       updateConfig("columnHeights", newColumnHeights);
 
       // Chỉ cập nhật chiều cao tổng thể nếu chiều cao mới lớn hơn chiều cao hiện tại
-      if (newHeight > config.height) {
-        updateConfig("height", newHeight);
+      if (newHeight > config.height - config.editFeet.heightFeet) {
+        // Cập nhật chiều cao tổng thể bao gồm cả chân kệ
+        updateConfig("height", newHeight + config.editFeet.heightFeet);
       }
     }
   };
