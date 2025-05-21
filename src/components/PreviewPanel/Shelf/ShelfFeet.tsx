@@ -22,7 +22,7 @@ const ShelfFeet: React.FC<{
 
   // Các thông số kích thước chân
   const feetDimensions = {
-    lyft: {
+    design: {
       // Chân "lyft" giờ là một thanh dài ở giữa
       width: totalWidth - 0.1, // 8cm chiều rộng của thanh dọc theo trục X
       height: feetHeight / 100, // Chiều cao (cm -> THREE.js)
@@ -30,7 +30,7 @@ const ShelfFeet: React.FC<{
       geometry: "box",
       style: "center_bar", // Kiểu thanh giữa
     },
-    classyc: {
+    classic: {
       width: 0.05, // 5cm
       height: feetHeight / 100,
       depth: 0.05,

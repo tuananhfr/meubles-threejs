@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { ThreeEvent } from "@react-three/fiber";
-import { useConfig } from "../../../context/ConfigContext";
+
 import DeleteModeComponent from "./DeleteModeComponent";
 import StandardReinforceModeComponent from "./StandardReinforceModeComponent";
+import { useConfig } from "../../../../context/ConfigContext";
 
 const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
   width,
@@ -273,7 +274,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
       // Vẽ kệ ngang ở giữa
       for (let row = 1; row < actualRows; row++) {
         // Vị trí Y bắt đầu từ đáy lên
-        const rowY = shelfBottomY + thickness + row * shelfSpacing;
+        const rowY = shelfBottomY + thickness / 2 + row * shelfSpacing;
 
         // Chỉ vẽ kệ nếu nằm trong phạm vi chiều cao của cột
         if (rowY < shelfBottomY + colHeight - thickness) {
@@ -361,7 +362,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
           // Chỉ xét các hàng không phải số nguyên
           if (isVirtualShelfConverted(row, col)) {
             // Tính vị trí Y tương tự kệ ảo
-            const rowY = shelfBottomY + thickness + row * shelfSpacing;
+            const rowY = shelfBottomY + thickness / 2 + row * shelfSpacing;
 
             // Chỉ thêm nếu nằm trong phạm vi chiều cao của cột
             if (

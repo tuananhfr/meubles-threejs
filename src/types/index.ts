@@ -1,3 +1,4 @@
+import { JSX } from "react";
 import * as THREE from "three";
 declare global {
   // Định nghĩa kiểu cho context
@@ -23,6 +24,7 @@ declare global {
     listTextures: Texture[];
     backPanels: Record<string, BackPanelsData>;
     shelves: Record<string, ShelfData>;
+    facadePanels: Record<string, FacadeData>;
     editColumns: EditColumns;
     editShelf: EditShelf;
     editFeet: EditFeet;
@@ -57,6 +59,17 @@ declare global {
     material: string;
     isRemoved: boolean; // Đã bị xóa hay chưa
     permanentlyDeleted: boolean;
+  }
+
+  interface FacadeData {
+    key: string; // Định danh duy nhất, dạng "row-column"
+    row: number; // Vị trí hàng
+    column: number; // Vị trí cột
+    position: [number, number, number]; // Vị trí [x, y, z]
+
+    // Thêm các thuộc tính kích thước
+    dimensions: [number, number, number]; // Kích thước [width, height, depth]
+    material: string;
   }
   interface Texture {
     name: string;
@@ -93,6 +106,11 @@ declare global {
   }
   interface EditFacade {
     isOpenMenu: boolean;
+    facadeType: string;
+
+    heightFacade: number;
+
+    selectedFacade: FacadeData[][];
   }
   interface EditBackboard {
     isOpenMenu: boolean;
@@ -288,6 +306,20 @@ declare global {
     isStandardMode: boolean;
     isReinforcedMode: boolean;
     hasResetRef: React.RefObject<boolean>;
+  }
+
+  interface FacadeType {
+    id: string;
+    name: string;
+    height: number; // Hệ số chiều cao (tỷ lệ của chiều cao kệ)
+    icon: JSX.Element;
+  }
+
+  interface FacadeRegion {
+    id: string;
+    name: string;
+    height: number;
+    shelfKeys: string[];
   }
 }
 

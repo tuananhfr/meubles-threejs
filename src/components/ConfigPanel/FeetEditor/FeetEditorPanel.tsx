@@ -16,9 +16,9 @@ const ShelfEditorPanel: React.FC = () => {
     switch (feetType) {
       case "sans_pieds":
         return 0;
-      case "lyft":
+      case "design":
         return 6;
-      case "classyc":
+      case "classic":
         return 4;
       default:
         return 0;
@@ -110,11 +110,11 @@ const ShelfEditorPanel: React.FC = () => {
           <div className="col">
             <button
               className={`btn ${
-                currentFeetType === "lyft"
+                currentFeetType === "design"
                   ? "btn-primary"
                   : "btn-outline-primary"
               } rounded p-2 text-center w-100 h-100 d-flex flex-column justify-content-center align-items-center`}
-              onClick={() => handleFeetTypeChange("lyft")}
+              onClick={() => handleFeetTypeChange("design")}
             >
               <div className="mb-2">
                 <svg
@@ -136,15 +136,16 @@ const ShelfEditorPanel: React.FC = () => {
                   ></path>
                 </svg>
               </div>
-              <div>LYFT</div>
+              <div>DESIGN</div>
               <div
                 className="mt-1 small text-primary"
                 style={{
-                  visibility: currentFeetType !== "lyft" ? "visible" : "hidden",
+                  visibility:
+                    currentFeetType !== "design" ? "visible" : "hidden",
                   height: "20px",
                 }}
               >
-                {getHeightDifferenceText(currentFeetType, "lyft") ||
+                {getHeightDifferenceText(currentFeetType, "design") ||
                   "placeholder"}
               </div>
             </button>
@@ -152,11 +153,11 @@ const ShelfEditorPanel: React.FC = () => {
           <div className="col">
             <button
               className={`btn ${
-                currentFeetType === "classyc"
+                currentFeetType === "classic"
                   ? "btn-primary"
                   : "btn-outline-primary"
               } rounded p-2 text-center w-100 h-100 d-flex flex-column justify-content-center align-items-center`}
-              onClick={() => handleFeetTypeChange("classyc")}
+              onClick={() => handleFeetTypeChange("classic")}
             >
               <div className="mb-2">
                 <svg
@@ -179,16 +180,16 @@ const ShelfEditorPanel: React.FC = () => {
                   </g>
                 </svg>
               </div>
-              <div>CLASSYC</div>
+              <div>CLASSIC</div>
               <div
                 className="mt-1 small text-primary"
                 style={{
                   visibility:
-                    currentFeetType !== "classyc" ? "visible" : "hidden",
+                    currentFeetType !== "classic" ? "visible" : "hidden",
                   height: "20px",
                 }}
               >
-                {getHeightDifferenceText(currentFeetType, "classyc") ||
+                {getHeightDifferenceText(currentFeetType, "classic") ||
                   "placeholder"}
               </div>
             </button>

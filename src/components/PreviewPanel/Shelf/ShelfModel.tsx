@@ -5,14 +5,15 @@ import { useLoader } from "@react-three/fiber";
 import { TextureLoader } from "three";
 
 import LineWithLabel from "../LineWithLabel";
-import ColumnHighlights from "./ColumnHighlights";
-import ShelfHighlights from "./ShelfHighlights/ShelfHighlights";
+import ColumnHighlights from "./highlights/ColumnHighlights";
+import ShelfHighlights from "./highlights/ShelfHighlights/ShelfHighlights";
 import OuterFrame from "./OuterFrame";
 import VerticalDividers from "./VerticalDividers";
 import HorizontalShelves from "./HorizontalShelves";
 import { useShelfCalculations } from "../../../hooks/useShelfCalculations";
-import BackboardHighlights from "./BackboardHighlights";
+import BackboardHighlights from "./highlights/BackboardHighlights";
 import ShelfFeet from "./ShelfFeet";
+import FacadeHighlights from "./highlights/FacadeHighlights";
 
 interface ShelfModelProps {
   showMeasurements?: boolean;
@@ -20,9 +21,7 @@ interface ShelfModelProps {
 
 /**
  * Kệ sách có thể tùy chỉnh số hàng, cột và kích thước từng cột
- * Phiên bản đã sửa để phản ánh cách đóng kệ thực tế:
- * - Tấm dọc: chiều cao = chiều cao ô + độ dày của 2 tấm ngang
- * - Tấm ngang: nằm giữa các tấm dọc
+
  */
 const ShelfModel: React.FC<ShelfModelProps> = ({
   showMeasurements = false,
@@ -31,7 +30,6 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
   const groupRef = useRef<THREE.Group>(null);
   const texture = useLoader(TextureLoader, config.texture.src);
 
-  // Get shelf calculations from custom hook
   const {
     height,
     depth,
@@ -146,6 +144,9 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
 
       {/* Backboard highlights */}
       <BackboardHighlights />
+
+      {/* Facade highlights */}
+      <FacadeHighlights />
     </group>
   );
 };

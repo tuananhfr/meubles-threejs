@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Text } from "@react-three/drei";
 import { ThreeEvent } from "@react-three/fiber";
-import { useConfig } from "../../context/ConfigContext";
+import { useConfig } from "../../../context/ConfigContext";
 
 const BackboardHighlights: React.FC = () => {
   const { config, updateConfig } = useConfig();

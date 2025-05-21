@@ -135,6 +135,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     columnWidthsOption: "36 cm",
     shelves: initializeShelves(),
     backPanels: {},
+    facadePanels: {},
     editColumns: {
       isOpenMenu: false,
       isOpenOption: false,
@@ -159,6 +160,9 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     },
     editFacade: {
       isOpenMenu: false,
+      facadeType: "",
+      heightFacade: 0,
+      selectedFacade: [],
     },
     editBackboard: {
       isOpenMenu: false,

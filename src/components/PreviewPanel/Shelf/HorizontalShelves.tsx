@@ -257,7 +257,7 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
         // Kiểm tra xem kệ này có phải kệ đã chuyển từ ảo sang thật hay không (cả tăng cường và tiêu chuẩn)
         if (shelf && !shelf.isVirtual && !shelf.isRemoved) {
           // Vị trí Y bắt đầu từ đáy lên
-          const rowY = shelfBottomY + thickness + row * shelfSpacing;
+          const rowY = shelfBottomY + thickness / 2 + row * shelfSpacing;
 
           // Chỉ vẽ kệ nếu nằm trong phạm vi chiều cao của cột
           if (
@@ -296,7 +296,7 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
         // Fallback cho logic cũ sử dụng các mảng string
         else if (isVirtualShelfConvertedToReinforced(row, col)) {
           // Vị trí Y bắt đầu từ đáy lên
-          const rowY = shelfBottomY + thickness + row * shelfSpacing;
+          const rowY = shelfBottomY + thickness / 2 + row * shelfSpacing;
 
           if (
             rowY > shelfBottomY + thickness &&
@@ -330,7 +330,7 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
           }
         } else if (isVirtualShelfConvertedToStandard(row, col)) {
           // Vị trí Y bắt đầu từ đáy lên
-          const rowY = shelfBottomY + thickness + row * shelfSpacing;
+          const rowY = shelfBottomY + thickness / 2 + row * shelfSpacing;
 
           if (
             rowY > shelfBottomY + thickness &&
