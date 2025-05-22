@@ -1,12 +1,11 @@
 // components/HorizontalShelves.tsx
-import React from "react";
-
+import React, { useState, useEffect } from "react";
+import * as THREE from "three";
 import { useConfig } from "../../context/ConfigContext";
 import { Text } from "@react-three/drei";
 
 const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
   columns,
-
   depth,
   thickness,
   cellHeight,
@@ -17,6 +16,61 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
   getColumnXPosition,
 }) => {
   const { config } = useConfig();
+
+  // State để lưu texture cho các shelf riêng lẻ
+  const [shelfTextures, setShelfTextures] = useState<
+    Record<string, THREE.Texture>
+  >({});
+
+  // Effect để load texture riêng cho từng shelf
+  useEffect(() => {
+    const loadShelfTextures = async () => {
+      const newTextures: Record<string, THREE.Texture> = {};
+      const textureLoader = new THREE.TextureLoader();
+
+      // Duyệt qua tất cả shelves để tìm những shelf có texture riêng
+      for (const [key, shelf] of Object.entries(config.shelves || {})) {
+        if (shelf?.texture?.src) {
+          try {
+            const loadedTexture = await new Promise<THREE.Texture>(
+              (resolve, reject) => {
+                textureLoader.load(
+                  shelf.texture!.src,
+                  (texture) => {
+                    texture.wrapS = THREE.RepeatWrapping;
+                    texture.wrapT = THREE.RepeatWrapping;
+                    resolve(texture);
+                  },
+                  undefined,
+                  reject
+                );
+              }
+            );
+            newTextures[key] = loadedTexture;
+          } catch (error) {
+            console.warn(`Failed to load texture for shelf ${key}:`, error);
+          }
+        }
+      }
+
+      setShelfTextures(newTextures);
+    };
+
+    loadShelfTextures();
+  }, [config.shelves]);
+
+  // Hàm để lấy texture cho shelf cụ thể
+  const getShelfTexture = (
+    row: number,
+    column: number,
+    isVirtual: boolean = false
+  ) => {
+    const key = isVirtual ? `${row}-${column}-virtual` : `${row}-${column}`;
+
+    // Sử dụng texture riêng nếu có, ngược lại dùng texture mặc định
+    const finalTexture = shelfTextures[key] || texture;
+    return finalTexture;
+  };
 
   // Kiểm tra một vị trí có phải là kệ tăng cường không
   const isReinforcedShelf = (
@@ -30,8 +84,6 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
     // Sử dụng shelves object
     const shelf = config.shelves[key];
     return shelf?.isReinforced === true;
-
-    return false;
   };
 
   // Kiểm tra một vị trí có phải là kệ tiêu chuẩn không
@@ -137,12 +189,13 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
 
       // Vẽ kệ đáy (kiểm tra removed)
       if (!isRemovedShelf(0, col)) {
+        const bottomShelfTexture = getShelfTexture(0, col, false);
         shelves.push(
           <group key={`horizontal-shelf-${col}-0`}>
             <mesh position={[centerX, shelfBottomY + thickness / 2, 0]}>
               <boxGeometry args={[colWidth, thickness, depth]} />
               <meshStandardMaterial
-                map={texture}
+                map={bottomShelfTexture}
                 roughness={0.7}
                 metalness={0.1}
               />
@@ -168,6 +221,7 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
 
       // Vẽ kệ đỉnh (kiểm tra removed)
       if (!isRemovedShelf(topRowIndex, col)) {
+        const topShelfTexture = getShelfTexture(topRowIndex, col, false);
         shelves.push(
           <group key={`horizontal-shelf-${col}-top`}>
             <mesh
@@ -175,7 +229,7 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
             >
               <boxGeometry args={[colWidth, thickness, depth]} />
               <meshStandardMaterial
-                map={texture}
+                map={topShelfTexture}
                 roughness={0.7}
                 metalness={0.1}
               />
@@ -211,12 +265,13 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
 
         // Chỉ vẽ kệ nếu nằm trong phạm vi chiều cao của cột
         if (rowY < shelfBottomY + colHeight - thickness) {
+          const middleShelfTexture = getShelfTexture(row, col, false);
           shelves.push(
             <group key={`horizontal-shelf-${col}-${row}`}>
               <mesh position={[centerX, rowY, 0]}>
                 <boxGeometry args={[colWidth, thickness, depth]} />
                 <meshStandardMaterial
-                  map={texture}
+                  map={middleShelfTexture}
                   roughness={0.7}
                   metalness={0.1}
                 />
@@ -264,12 +319,13 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
             rowY > shelfBottomY + thickness &&
             rowY < shelfBottomY + colHeight - thickness
           ) {
+            const convertedShelfTexture = getShelfTexture(row, col, false);
             shelves.push(
               <group key={`converted-shelf-${col}-${row}`}>
                 <mesh position={[centerX, rowY, 0]}>
                   <boxGeometry args={[colWidth, thickness, depth]} />
                   <meshStandardMaterial
-                    map={texture}
+                    map={convertedShelfTexture}
                     roughness={0.7}
                     metalness={0.1}
                   />
@@ -302,12 +358,13 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
             rowY > shelfBottomY + thickness &&
             rowY < shelfBottomY + colHeight - thickness
           ) {
+            const fallbackReinforcedTexture = getShelfTexture(row, col, false);
             shelves.push(
               <group key={`converted-reinforced-shelf-${col}-${row}`}>
                 <mesh position={[centerX, rowY, 0]}>
                   <boxGeometry args={[colWidth, thickness, depth]} />
                   <meshStandardMaterial
-                    map={texture}
+                    map={fallbackReinforcedTexture}
                     roughness={0.7}
                     metalness={0.1}
                   />
@@ -336,12 +393,13 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
             rowY > shelfBottomY + thickness &&
             rowY < shelfBottomY + colHeight - thickness
           ) {
+            const fallbackStandardTexture = getShelfTexture(row, col, false);
             shelves.push(
               <group key={`converted-standard-shelf-${col}-${row}`}>
                 <mesh position={[centerX, rowY, 0]}>
                   <boxGeometry args={[colWidth, thickness, depth]} />
                   <meshStandardMaterial
-                    map={texture}
+                    map={fallbackStandardTexture}
                     roughness={0.7}
                     metalness={0.1}
                   />
@@ -411,12 +469,13 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
           rowY > shelfBottomY + thickness &&
           rowY < shelfBottomY + colHeight - thickness
         ) {
+          const virtualShelfTexture = getShelfTexture(row, col, true);
           shelves.push(
             <group key={`virtual-shelf-${col}-${row}`}>
               <mesh position={[centerX, rowY, 0]}>
                 <boxGeometry args={[colWidth, thickness, depth]} />
                 <meshStandardMaterial
-                  map={texture}
+                  map={virtualShelfTexture}
                   roughness={0.7}
                   metalness={0.1}
                 />

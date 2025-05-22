@@ -16,6 +16,8 @@ declare global {
     height: number;
     depth: number;
     thickness: number;
+    price: number;
+    originalPrice: number;
     position: string;
     activeView: string;
     columns: number;
@@ -25,11 +27,13 @@ declare global {
     backPanels: Record<string, BackPanelsData>;
     shelves: Record<string, ShelfData>;
     facadePanels: Record<string, FacadeData>;
+    verticalPanels: Record<string, VerticalPanelData>;
     editColumns: EditColumns;
     editShelf: EditShelf;
     editFeet: EditFeet;
     editFacade: EditFacade;
     editBackboard: EditBackboard;
+    editVerticalPanels: EditVerticalPanels;
     columnHeights: ColumnDimensions;
     columnWidths: ColumnDimensions;
     columnWidthsOption: string;
@@ -38,6 +42,12 @@ declare global {
     cellHeight: number;
   }
 
+  interface VerticalPanelData {
+    key: string;
+    texture?: Texture;
+    position: [number, number, number]; // [x, y, z]
+    dimensions: [number, number, number]; // [width, height, depth]
+  }
   interface ShelfData {
     key: string; // Định danh duy nhất, dạng "row-column" hoặc "row-column-virtual"
     row: number; // Vị trí hàng
@@ -46,6 +56,7 @@ declare global {
     isStandard: boolean; // Là kệ tiêu chuẩn hay không
     isReinforced: boolean; // Là kệ tăng cường hay không
     isRemoved: boolean; // Đã bị xóa hay chưa
+    texture?: Texture;
   }
 
   interface BackPanelsData {
@@ -56,7 +67,8 @@ declare global {
 
     // Thêm các thuộc tính kích thước
     dimensions: [number, number, number]; // Kích thước [width, height, depth]
-    material: string;
+
+    texture?: Texture;
     isRemoved: boolean; // Đã bị xóa hay chưa
     permanentlyDeleted: boolean;
   }
@@ -66,7 +78,7 @@ declare global {
     row: number; // Vị trí hàng
     column: number; // Vị trí cột
     position: [number, number, number]; // Vị trí [x, y, z]
-
+    texture?: Texture;
     // Thêm các thuộc tính kích thước
     dimensions: [number, number, number]; // Kích thước [width, height, depth]
     material: string;
@@ -78,6 +90,11 @@ declare global {
 
   interface ColumnDimensions {
     [columnIndex: number]: number;
+  }
+
+  interface EditVerticalPanels {
+    isOpenEditTexture: boolean;
+    selectedPanels: string[];
   }
 
   interface EditColumns {
@@ -96,6 +113,7 @@ declare global {
     isOpenEditStandard: boolean;
     isOpenEditReinforced: boolean;
     isOpenEditDelete: boolean;
+    isOpenEditTexture: boolean;
 
     selectedShelves: ShelfInfo[];
   }
@@ -103,9 +121,13 @@ declare global {
     isOpenMenu: boolean;
     feetType: string;
     heightFeet: number;
+    texture?: Texture;
+    metalness?: number;
+    roughness?: number;
   }
   interface EditFacade {
     isOpenMenu: boolean;
+    isOpenEditTexture: boolean;
     facadeType: string;
 
     heightFacade: number;
@@ -114,6 +136,7 @@ declare global {
   }
   interface EditBackboard {
     isOpenMenu: boolean;
+    isOpenEditTexture: boolean;
     isSurfaceTotal: boolean;
     isDeleteTotal: boolean;
     isSurfaceOption: boolean;
@@ -132,12 +155,6 @@ declare global {
     };
   }
 
-  export enum ShelfEditMode {
-    NONE = "none",
-    STANDARD = "standard",
-    REINFORCED = "reinforced",
-    DELETE = "delete",
-  }
   export interface ShelfPosition {
     x: number;
     y: number;
@@ -285,9 +302,21 @@ declare global {
     texture: THREE.Texture;
     getColumnHeight: (colIndex: number) => number;
     getColumnXPosition: (colIndex: number) => number;
+    getColumnWidth: (colIndex: number) => number;
+    totalWidth: number;
   }
 
   interface DeleteModeComponentProps {
+    shelfPositions: any[];
+    selectedShelves: string[];
+    hoveredShelf: string | null;
+    depth: number;
+    handleShelfClick: (shelfInfo: any) => void;
+    isStandardOrReinforcedShelf: (shelfId: string) => boolean;
+    hasResetRef: React.RefObject<boolean>;
+  }
+
+  interface TextureModeComponentProps {
     shelfPositions: any[];
     selectedShelves: string[];
     hoveredShelf: string | null;
@@ -320,6 +349,42 @@ declare global {
     name: string;
     height: number;
     shelfKeys: string[];
+  }
+
+  interface BackPanelsProps {
+    columns: number;
+    depth: number;
+    cellHeight: number;
+    thickness: number;
+    totalWidth: number;
+    shelfBottomY: number;
+    getColumnHeight: (colIndex: number) => number;
+    getColumnWidth: (colIndex: number) => number;
+    getColumnXPosition: (colIndex: number) => number;
+  }
+
+  interface DrawerAnimationData {
+    drawerKey: string;
+    startPosition: number;
+    targetPosition: number;
+    startTime: number;
+    duration: number;
+  }
+
+  interface DoorAnimationData {
+    doorKey: string;
+    startRotation: number;
+    targetRotation: number;
+    startTime: number;
+    duration: number;
+    hingePosition: [number, number, number];
+    isLeftHinged: boolean;
+  }
+
+  interface FacadePanelsProps {
+    depth: number;
+    thickness: number;
+    texture: Texture;
   }
 }
 

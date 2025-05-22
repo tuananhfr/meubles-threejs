@@ -25,6 +25,8 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
   const initialcellHeight = 36; // Chiều cao của ô
   const initialcellWidth = 36; // Chiều rộng của ô
 
+  const initialPrice = 0;
+
   // Tính toán chiều rộng mặc định cho mỗi cột (trừ đi độ dày vách ngăn)
   const totalThickness = initialThickness * (initialColumns + 1); // Tổng độ dày các vách ngăn
   const defaultColumnWidth = Math.floor(
@@ -50,7 +52,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     { name: "Taupe", src: taupeTexture },
   ];
 
-  // Khởi tạo shelves mặc định
+  // Khởi tạo shelves mặc định - KHÔNG có texture riêng
   const initializeShelves = () => {
     const initialShelves: Record<string, ShelfData> = {};
 
@@ -72,6 +74,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
         isStandard: true,
         isReinforced: false,
         isRemoved: false,
+        // Không set texture mặc định, để dùng config.texture
       };
 
       // Kệ đỉnh - luôn là kệ tiêu chuẩn
@@ -83,6 +86,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
         isStandard: true,
         isReinforced: false,
         isRemoved: false,
+        // Không set texture mặc định
       };
 
       // Các kệ ở giữa - mặc định là kệ tiêu chuẩn
@@ -95,6 +99,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
           isStandard: true, // Mặc định là kệ tiêu chuẩn
           isReinforced: false,
           isRemoved: false,
+          // Không set texture mặc định
         };
       }
 
@@ -109,6 +114,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
           isStandard: false,
           isReinforced: false,
           isRemoved: false,
+          // Không set texture mặc định
         };
       }
     }
@@ -123,6 +129,8 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     width: initialWidth,
     height: initialHeight,
     depth: initialDepth,
+    price: initialPrice,
+    originalPrice: initialPrice * 0.6,
     thickness: initialThickness,
     position: "Au sol",
     activeView: "Étagère entière",
@@ -136,6 +144,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     shelves: initializeShelves(),
     backPanels: {},
     facadePanels: {},
+    verticalPanels: {}, // ADDED: Khởi tạo rỗng, sẽ được sync bởi VerticalDividers
     editColumns: {
       isOpenMenu: false,
       isOpenOption: false,
@@ -151,15 +160,18 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
       isOpenEditStandard: false,
       isOpenEditReinforced: false,
       isOpenEditDelete: false,
+      isOpenEditTexture: false,
       selectedShelves: [],
     },
     editFeet: {
       isOpenMenu: false,
       feetType: "sans_pieds",
       heightFeet: 0,
+      texture: textures[0],
     },
     editFacade: {
       isOpenMenu: false,
+      isOpenEditTexture: false,
       facadeType: "",
       heightFacade: 0,
       selectedFacade: [],
@@ -169,7 +181,13 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
       isSurfaceTotal: false,
       isDeleteTotal: true,
       isSurfaceOption: false,
+      isOpenEditTexture: false,
       selectedBackboard: [],
+    },
+    editVerticalPanels: {
+      // ADDED: Edit state cho vertical panels
+      isOpenEditTexture: false,
+      selectedPanels: [],
     },
     cellHeight: initialcellHeight,
     cellWidth: initialcellWidth,
@@ -400,6 +418,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
               isStandard: true,
               isReinforced: false,
               isRemoved: false,
+              // Không set texture mặc định cho shelf mới
             };
           }
 
@@ -418,6 +437,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
                   isStandard: false,
                   isReinforced: false,
                   isRemoved: false,
+                  // Không set texture mặc định cho shelf ảo mới
                 };
               }
             }
@@ -446,6 +466,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
             isStandard: true,
             isReinforced: false,
             isRemoved: false,
+            // Không set texture mặc định cho kệ đỉnh mới
           };
         }
       }
@@ -521,6 +542,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
           isStandard: true,
           isReinforced: false,
           isRemoved: false,
+          // Không set texture mặc định cho kệ đáy mới
         };
 
         // Thêm kệ đỉnh
@@ -532,6 +554,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
           isStandard: true,
           isReinforced: false,
           isRemoved: false,
+          // Không set texture mặc định cho kệ đỉnh mới
         };
 
         // Thêm kệ ở giữa
@@ -544,6 +567,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
             isStandard: true,
             isReinforced: false,
             isRemoved: false,
+            // Không set texture mặc định cho kệ giữa mới
           };
         }
 
@@ -559,6 +583,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
               isStandard: false,
               isReinforced: false,
               isRemoved: false,
+              // Không set texture mặc định cho kệ ảo mới
             };
           }
         }

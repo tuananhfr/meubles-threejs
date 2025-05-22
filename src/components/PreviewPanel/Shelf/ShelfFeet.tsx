@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import * as THREE from "three";
 import { useConfig } from "../../context/ConfigContext";
 
@@ -6,11 +6,38 @@ const ShelfFeet: React.FC<{
   totalWidth: number;
   depth: number;
   shelfBottomY: number;
-  texture: THREE.Texture;
+  texture: THREE.Texture; // Texture mặc định nếu không có texture riêng
 }> = ({ totalWidth, depth, shelfBottomY, texture }) => {
   const { config } = useConfig();
   const feetType = config.editFeet?.feetType || "sans_pieds";
   const feetHeight = config.editFeet?.heightFeet || 0;
+
+  // State để lưu texture cho chân kệ
+  const [feetTexture, setFeetTexture] = useState<THREE.Texture | null>(null);
+
+  // Lấy đường dẫn texture cho chân kệ từ config
+  const feetTexturePath = config.editFeet?.texture?.src || null;
+
+  // Load texture riêng cho chân kệ nếu có
+  useEffect(() => {
+    if (feetTexturePath) {
+      const textureLoader = new THREE.TextureLoader();
+      textureLoader.load(feetTexturePath, (loadedTexture) => {
+        loadedTexture.wrapS = THREE.RepeatWrapping;
+        loadedTexture.wrapT = THREE.RepeatWrapping;
+        setFeetTexture(loadedTexture);
+      });
+    }
+  }, [feetTexturePath]);
+
+  // Sử dụng texture riêng nếu có, ngược lại dùng texture mặc định
+  const finalTexture = feetTexture || texture;
+
+  // Lấy thông số vật liệu từ config hoặc sử dụng giá trị mặc định
+  const metalness =
+    config.editFeet?.metalness !== undefined ? config.editFeet.metalness : 0.1;
+  const roughness =
+    config.editFeet?.roughness !== undefined ? config.editFeet.roughness : 0.8;
 
   // Không hiển thị gì nếu là loại "sans_pieds"
   if (feetType === "sans_pieds") {
@@ -42,17 +69,24 @@ const ShelfFeet: React.FC<{
   // Lấy thông số kích thước dựa trên loại chân
   const dimensions = feetDimensions[feetType as keyof typeof feetDimensions];
 
+  // Tạo material cho chân kệ
+  const feetMaterial = (
+    <meshStandardMaterial
+      map={finalTexture}
+      metalness={metalness}
+      roughness={roughness}
+    />
+  );
+
   // Nếu là kiểu "center_bar" (thanh giữa), tạo 1 thanh dài ở giữa kệ
   if (dimensions.style === "center_bar") {
     return (
       <group>
-        <mesh
-          position={[0, feetPositionY, 0]} // Vị trí chính giữa kệ
-        >
+        <mesh position={[0, feetPositionY, 0]}>
           <boxGeometry
             args={[dimensions.width, dimensions.height, dimensions.depth]}
           />
-          <meshStandardMaterial map={texture} metalness={0.1} roughness={0.8} />
+          {feetMaterial}
         </mesh>
       </group>
     );
@@ -63,27 +97,27 @@ const ShelfFeet: React.FC<{
   const feetPositions = [
     // Chân trước bên trái
     {
-      x: -totalWidth / 2 + dimensions.width / 2, // Vị trí X của vách trái
+      x: -totalWidth / 2 + dimensions.width / 2,
       y: feetPositionY,
-      z: depth / 2 - dimensions.depth / 2, // Mặt trước của kệ
+      z: depth / 2 - dimensions.depth / 2,
     },
     // Chân trước bên phải
     {
-      x: totalWidth / 2 - dimensions.width / 2, // Tương ứng với vị trí X của vách phải
+      x: totalWidth / 2 - dimensions.width / 2,
       y: feetPositionY,
-      z: depth / 2 - dimensions.depth / 2, // Mặt trước của kệ
+      z: depth / 2 - dimensions.depth / 2,
     },
     // Chân sau bên trái
     {
-      x: -totalWidth / 2 + dimensions.width / 2, // Vị trí X của vách trái
+      x: -totalWidth / 2 + dimensions.width / 2,
       y: feetPositionY,
-      z: -depth / 2 + dimensions.depth / 2, // Mặt sau của kệ
+      z: -depth / 2 + dimensions.depth / 2,
     },
     // Chân sau bên phải
     {
-      x: totalWidth / 2 - dimensions.width / 2, // Tương ứng với vị trí X của vách phải
+      x: totalWidth / 2 - dimensions.width / 2,
       y: feetPositionY,
-      z: -depth / 2 + dimensions.depth / 2, // Mặt sau của kệ
+      z: -depth / 2 + dimensions.depth / 2,
     },
   ];
 
@@ -95,7 +129,6 @@ const ShelfFeet: React.FC<{
           key={`foot-${index}`}
           position={[position.x, position.y, position.z]}
         >
-          {/* Sử dụng hình học phù hợp với loại chân */}
           {dimensions.geometry === "box" ? (
             <boxGeometry
               args={[dimensions.width, dimensions.height, dimensions.depth]}
@@ -110,7 +143,7 @@ const ShelfFeet: React.FC<{
               ]}
             />
           )}
-          <meshStandardMaterial map={texture} metalness={0.1} roughness={0.8} />
+          {feetMaterial}
         </mesh>
       ))}
     </group>

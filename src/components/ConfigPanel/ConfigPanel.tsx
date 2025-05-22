@@ -89,6 +89,131 @@ const ConfigPanel: React.FC = () => {
       updateConfig("position", value as "Au sol" | "Suspendu");
     }
   };
+
+  const selectorOptions = ["Étagère entière", "Tablettes", "Panneaux"];
+
+  // Only add "Pieds" option if not "sans_pieds"
+  if (config.editFeet?.feetType !== "sans_pieds") {
+    selectorOptions.push("Pieds");
+  }
+
+  if (config.facadePanels && Object.keys(config.facadePanels).length > 0) {
+    selectorOptions.push("Façades");
+  }
+
+  // Check if there are any back panels that are not removed
+  if (config.backPanels && Object.keys(config.backPanels).length > 0) {
+    const hasVisibleBackPanels = Object.values(config.backPanels).some(
+      (panel) => !panel.isRemoved
+    );
+    if (hasVisibleBackPanels) {
+      selectorOptions.push("Fonds");
+    }
+  }
+
+  const handleActiveViewChange = (value: string) => {
+    const newActiveView = value as
+      | "Étagère entière"
+      | "Tablettes"
+      | "Panneaux"
+      | "Façades"
+      | "Pieds"
+      | "Fonds";
+
+    // Cập nhật activeView
+    updateConfig("activeView", newActiveView);
+
+    // Xử lý logic cho isOpenEditTexture
+    if (newActiveView === "Tablettes") {
+      // Bật chế độ texture cho Tablettes
+      updateConfig("editShelf", {
+        ...config.editShelf,
+        isOpenEditTexture: true,
+        selectedShelves: [],
+        // Tắt các chế độ khác
+        isOpenEditStandard: false,
+        isOpenEditReinforced: false,
+        isOpenEditDelete: false,
+        isOpenMenu: false,
+      });
+    } else {
+      // Tắt chế độ texture cho các view khác
+      if (config.editShelf?.isOpenEditTexture) {
+        updateConfig("editShelf", {
+          ...config.editShelf,
+          isOpenEditTexture: false,
+          selectedShelves: [],
+          isOpenMenu: false,
+        });
+      }
+    }
+
+    if (newActiveView === "Panneaux") {
+      // Bật chế độ texture cho Panneaux
+      updateConfig("editVerticalPanels", {
+        ...config.editVerticalPanels,
+        isOpenEditTexture: true,
+        selectedPanels: [],
+      });
+    } else {
+      // Tắt chế độ texture cho các view khác
+      if (config.editVerticalPanels?.isOpenEditTexture) {
+        updateConfig("editVerticalPanels", {
+          ...config.editVerticalPanels,
+          isOpenEditTexture: false,
+          selectedPanels: [],
+        });
+      }
+    }
+
+    if (newActiveView === "Façades") {
+      // Bật chế độ texture cho Façades
+      updateConfig("editFacade", {
+        ...config.editFacade,
+        isOpenEditTexture: true,
+        selectedFacade: [],
+        isOpenMenu: false,
+      });
+    } else {
+      // Tắt chế độ texture cho các view khác
+      if (config.editFacade?.isOpenEditTexture) {
+        updateConfig("editFacade", {
+          ...config.editFacade,
+          isOpenEditTexture: false,
+          selectedFacade: [],
+          isOpenMenu: false,
+        });
+      }
+    }
+
+    // Xử lý logic cho Fonds
+    if (newActiveView === "Fonds") {
+      // Bật chế độ texture cho Fonds
+      updateConfig("editBackboard", {
+        ...config.editBackboard,
+        isOpenEditTexture: true,
+        selectedBackboard: [],
+        isOpenMenu: false,
+        isSurfaceTotal: false,
+        isDeleteTotal: false,
+        isSurfaceOption: false,
+      });
+    } else {
+      // Tắt chế độ texture cho các view khác
+      if (config.editBackboard?.isOpenEditTexture) {
+        updateConfig("editBackboard", {
+          ...config.editBackboard,
+          isOpenEditTexture: false,
+          selectedBackboard: [],
+          isOpenMenu: false,
+          isSurfaceTotal: false,
+          isDeleteTotal: false,
+          isSurfaceOption: false,
+        });
+      }
+    }
+  };
+
   return (
     <>
       {/* Hiển thị ColumnEditorPanel nếu editColumns.isOpenMenu = true */}
@@ -182,16 +307,33 @@ const ConfigPanel: React.FC = () => {
           />
           {/* Sélecteurs */}
           <SelectorButtons
-            options={["Étagère entière", "Tablettes", "Panneaux"]}
+            options={selectorOptions}
             activeOption={config.activeView}
-            onChange={(value: string) =>
-              updateConfig(
-                "activeView",
-                value as "Étagère entière" | "Tablettes" | "Panneaux"
-              )
-            }
+            onChange={handleActiveViewChange}
           />
-          {config.activeView === "Étagère entière" && <TextureSelector />}
+          {/* Các TextureSelector tương ứng với từng view */}
+          {config.activeView === "Étagère entière" && (
+            <TextureSelector type="entier" />
+          )}
+
+          {config.activeView === "Pieds" &&
+            config.editFeet?.feetType !== "sans_pieds" && (
+              <TextureSelector type="feet" />
+            )}
+
+          {config.activeView === "Tablettes" && (
+            <TextureSelector type="tablette" />
+          )}
+
+          {config.activeView === "Panneaux" && (
+            <TextureSelector type="vertical" />
+          )}
+
+          {config.activeView === "Façades" && <TextureSelector type="facade" />}
+
+          {config.activeView === "Fonds" && (
+            <TextureSelector type="backboard" />
+          )}
         </div>
       )}
     </>

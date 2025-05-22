@@ -4,13 +4,13 @@ const SelectorButtons: React.FC<SelectorButtonsProps> = ({
   onChange,
 }) => {
   return (
-    <div className="selector-buttons">
+    <div className="d-flex flex-wrap mb-3 mt-3 pb-3 border-bottom">
       {options.map((option) => (
         <button
           key={option}
-          className={`selector-button ${
-            activeOption === option ? "active" : ""
-          }`}
+          className={`btn ${
+            activeOption === option ? "btn-secondary" : "btn-outline-secondary"
+          } rounded-pill me-2 mb-2`}
           onClick={() => onChange(option)}
         >
           {option}

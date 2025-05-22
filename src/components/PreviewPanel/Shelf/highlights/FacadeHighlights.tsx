@@ -14,28 +14,57 @@ const FacadeHighlights: React.FC = () => {
     shelfBottomY,
     cellHeight,
     thickness,
-
     depth,
     getColumnWidth,
     getColumnHeight,
     getColumnXPosition,
   } = useShelfCalculations();
 
-  const panelStateConfig: PanelStateConfig = {
-    highlightColor: "#4CAF50",
-    highlightOpacity: 0.2,
-    iconBackgroundColor: "white",
-    iconColor: "#4CAF50",
-    iconText: "+",
-  };
-
-  // Kiểm tra xem có đang ở chế độ retire không
+  // Xác định chế độ hiện tại
   const isRetireMode =
     config.editFacade?.facadeType === "retire" &&
     config.editFacade?.heightFacade === 0;
 
+  const isTextureEditMode = config.editFacade?.isOpenEditTexture;
+
+  // Cấu hình trạng thái panel cho từng mode
+  const getPanelStateConfig = (): PanelStateConfig => {
+    if (isRetireMode) {
+      return {
+        highlightColor: "#F44336", // Đỏ
+        highlightOpacity: 0.2,
+        iconBackgroundColor: "white",
+        iconColor: "#F44336",
+        iconText: "-",
+      };
+    } else if (isTextureEditMode) {
+      return {
+        highlightColor: "#2196F3", // Xanh dương
+        highlightOpacity: 0.2,
+        iconBackgroundColor: "white",
+        iconColor: "#2196F3",
+        iconText: "+",
+      };
+    } else {
+      return {
+        highlightColor: "#4CAF50", // Xanh lá
+        highlightOpacity: 0.2,
+        iconBackgroundColor: "white",
+        iconColor: "#4CAF50",
+        iconText: "+",
+      };
+    }
+  };
+
+  const panelStateConfig = getPanelStateConfig();
+
   // Tạo danh sách temporary panels chỉ dùng trong component này
   const tempFacadePanels = useMemo(() => {
+    // Đối với texture edit mode, hiển thị tất cả facade panels hiện có
+    if (isTextureEditMode) {
+      return config.facadePanels || {};
+    }
+
     // Nếu đang ở chế độ retire, trả về facadePanels hiện tại thay vì tạo panels mới
     if (isRetireMode) {
       return config.facadePanels || {};
@@ -118,10 +147,20 @@ const FacadeHighlights: React.FC = () => {
     cellHeight,
     thickness,
     isRetireMode,
+    isTextureEditMode, // Thêm dependency
   ]);
 
   // Sử dụng useMemo để tạo trước bản đồ facade cho mỗi panel tạm thời
   const panelToFacadeMap = useMemo(() => {
+    // Đối với texture edit mode, mỗi panel đại diện cho chính nó
+    if (isTextureEditMode) {
+      const result: Record<string, string[]> = {};
+      Object.keys(tempFacadePanels).forEach((key) => {
+        result[key] = [key];
+      });
+      return result;
+    }
+
     // Nếu là retire mode, mỗi panel đại diện cho chính nó
     if (isRetireMode) {
       const result: Record<string, string[]> = {};
@@ -210,13 +249,58 @@ const FacadeHighlights: React.FC = () => {
     tempFacadePanels,
     config.columns,
     isRetireMode,
+    isTextureEditMode, // Thêm dependency
   ]);
 
-  // Xử lý khi nhấp vào panel
+  // Xử lý click cho texture edit mode
+  const handleTextureEditClick = (
+    e: ThreeEvent<MouseEvent>,
+    panelKey: string
+  ) => {
+    e.stopPropagation();
+
+    if (!panelKey || !tempFacadePanels[panelKey]) return;
+
+    const panel = tempFacadePanels[panelKey];
+    const currentSelectedFacade = config.editFacade?.selectedFacade || [];
+
+    // Kiểm tra xem panel đã được chọn chưa
+    const selectedGroupIndex = currentSelectedFacade.findIndex((group) =>
+      group.some((p) => p.key === panelKey)
+    );
+
+    if (selectedGroupIndex !== -1) {
+      // Nếu đã được chọn, loại bỏ khỏi danh sách
+      const newSelectedFacade = [...currentSelectedFacade];
+      newSelectedFacade.splice(selectedGroupIndex, 1);
+
+      updateConfig("editFacade", {
+        ...config.editFacade,
+        selectedFacade: newSelectedFacade,
+      });
+    } else {
+      // Nếu chưa được chọn, thêm vào danh sách
+      updateConfig("editFacade", {
+        ...config.editFacade,
+        selectedFacade: [
+          ...currentSelectedFacade,
+          [panel], // Thêm panel đơn lẻ vào danh sách
+        ],
+      });
+    }
+  };
+
+  // Xử lý khi nhấp vào panel (logic gốc cho add/retire modes)
   const handlePanelClick = (e: ThreeEvent<MouseEvent>, panelKey: string) => {
     e.stopPropagation();
 
-    // Kiểm tra xem có panel được click không
+    // Xử lý riêng cho texture edit mode
+    if (isTextureEditMode) {
+      handleTextureEditClick(e, panelKey);
+      return;
+    }
+
+    // Logic gốc cho add/retire modes
     if (!panelKey || !tempFacadePanels || !panelToFacadeMap[panelKey]) return;
 
     // Lấy tất cả các panel keys trong cùng facade
@@ -273,8 +357,27 @@ const FacadeHighlights: React.FC = () => {
     );
   };
 
-  // Xử lý sự kiện hover
+  // Xử lý hover cho texture edit mode
+  const handleTextureEditHover = (
+    e: ThreeEvent<PointerEvent>,
+    panelKey: string
+  ) => {
+    if (!tempFacadePanels[panelKey]) return;
+
+    // Chỉ hover panel đơn lẻ
+    setHoveredPanels([panelKey]);
+    document.body.style.cursor = "pointer";
+    e.stopPropagation();
+  };
+
+  // Xử lý sự kiện hover (logic gốc)
   const handlePointerOver = (e: ThreeEvent<PointerEvent>, panelKey: string) => {
+    // Xử lý riêng cho texture edit mode
+    if (isTextureEditMode) {
+      handleTextureEditHover(e, panelKey);
+      return;
+    }
+
     if (!tempFacadePanels || !panelToFacadeMap[panelKey]) return;
 
     // Lấy tất cả panel trong cùng facade
@@ -298,16 +401,27 @@ const FacadeHighlights: React.FC = () => {
   useEffect(() => {
     // Reset hoveredPanels khi facadeType thay đổi
     setHoveredPanels([]);
-  }, [config.editFacade?.facadeType]);
+  }, [config.editFacade?.facadeType, config.editFacade?.isOpenEditTexture]); // Thêm dependency
+
+  // Cập nhật điều kiện hiển thị
+  const shouldShowHighlights = () => {
+    // Hiển thị cho texture edit mode
+    if (isTextureEditMode) {
+      return tempFacadePanels && Object.keys(tempFacadePanels).length > 0;
+    }
+
+    // Logic gốc cho add/retire modes
+    return (
+      config.editFacade?.isOpenMenu &&
+      tempFacadePanels &&
+      Object.keys(tempFacadePanels).length > 0 &&
+      config.editFacade?.facadeType &&
+      config.editFacade.facadeType !== ""
+    );
+  };
 
   // Kiểm tra điều kiện để hiển thị highlights và icons
-  if (
-    !config.editFacade?.isOpenMenu ||
-    !tempFacadePanels ||
-    Object.keys(tempFacadePanels).length === 0 ||
-    !config.editFacade?.facadeType ||
-    config.editFacade.facadeType === ""
-  ) {
+  if (!shouldShowHighlights()) {
     return null;
   }
 
@@ -316,13 +430,6 @@ const FacadeHighlights: React.FC = () => {
     const [x, y, z] = panel.position;
     return [x, y, z + 0.03]; // Đặt icon phía trước panel một chút
   };
-
-  // Thay đổi màu highlight khi ở chế độ retire
-  const highlightColor = isRetireMode
-    ? "#F44336"
-    : panelStateConfig.highlightColor; // Đỏ cho retire
-  const iconText = isRetireMode ? "-" : panelStateConfig.iconText; // Dấu trừ cho retire
-  const iconColor = isRetireMode ? "#F44336" : panelStateConfig.iconColor; // Đỏ cho retire
 
   return (
     <group>
@@ -339,9 +446,15 @@ const FacadeHighlights: React.FC = () => {
           opacity = 0.5;
         }
 
-        // Thay đổi màu nền icon khi được chọn
+        // Thay đổi màu nền icon khi được chọn dựa theo mode
         if (isSelected) {
-          iconBackgroundColor = isRetireMode ? "#FFEBEE" : "#E8F5E9"; // Background đỏ nhạt/xanh lá nhạt
+          if (isRetireMode) {
+            iconBackgroundColor = "#FFEBEE"; // Background đỏ nhạt
+          } else if (isTextureEditMode) {
+            iconBackgroundColor = "#E3F2FD"; // Background xanh dương nhạt
+          } else {
+            iconBackgroundColor = "#E8F5E9"; // Background xanh lá nhạt
+          }
         }
 
         return (
@@ -361,7 +474,7 @@ const FacadeHighlights: React.FC = () => {
                 ]}
               />
               <meshBasicMaterial
-                color={highlightColor}
+                color={panelStateConfig.highlightColor}
                 transparent
                 opacity={opacity}
                 depthWrite={false}
@@ -380,12 +493,12 @@ const FacadeHighlights: React.FC = () => {
               {/* Icon text */}
               <Text
                 position={[0, 0, 0.01]}
-                color={iconColor}
+                color={panelStateConfig.iconColor}
                 fontSize={0.06}
                 anchorX="center"
                 anchorY="middle"
               >
-                {isSelected ? "✓" : iconText}
+                {isSelected ? "✓" : panelStateConfig.iconText}
               </Text>
             </group>
           </group>

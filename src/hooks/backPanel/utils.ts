@@ -36,7 +36,7 @@ export const createBackPanel = (
   column: number,
   position: [number, number, number],
   dimensions: [number, number, number],
-  material: string = "taupeTexture",
+
   isRemoved: boolean = false,
   permanentlyDeleted: boolean = false
 ): BackPanelsData => {
@@ -46,7 +46,7 @@ export const createBackPanel = (
     column,
     position,
     dimensions,
-    material,
+
     isRemoved,
     permanentlyDeleted,
   };

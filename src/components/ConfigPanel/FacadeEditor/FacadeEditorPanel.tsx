@@ -225,6 +225,7 @@ const FacadeEditorPanel: React.FC = () => {
         isStandard: !isVirtual,
         isReinforced: false,
         isVirtual: isVirtual,
+        texture: config.texture,
       };
     } else {
       // Nếu shelf đã tồn tại, chỉ cập nhật các thuộc tính trạng thái, giữ nguyên row và column

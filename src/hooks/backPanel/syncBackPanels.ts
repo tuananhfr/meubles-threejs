@@ -9,7 +9,6 @@ export const syncBackPanelsWithShelves = (
   getShelfYPosition: (row: number) => number,
   getColumnWidth: (col: number) => number,
   getColumnXPosition: (col: number) => number,
-
   thickness: number,
   depth: number
 ): Record<string, BackPanelsData> => {
@@ -92,17 +91,33 @@ export const syncBackPanelsWithShelves = (
           permanentlyDeleted = backPanels[panelKey].permanentlyDeleted;
         }
 
-        // Tạo panel
-        updatedBackPanels[panelKey] = createBackPanel(
+        //  Giữ lại texture nếu panel đã tồn tại
+        let existingTexture = undefined;
+        if (
+          backPanels &&
+          backPanels[panelKey] &&
+          backPanels[panelKey].texture
+        ) {
+          existingTexture = backPanels[panelKey].texture;
+        }
+
+        // Tạo panel với texture được bảo tồn
+        const newPanel = createBackPanel(
           panelKey,
           currentShelf.row, // Giữ nguyên row, không làm tròn
           column,
           [colX + colWidth / 2 + thickness / 2, panelY, backPanelZ],
           [colWidth, panelHeight, thickness],
-          "taupeTexture",
           isRemoved,
           permanentlyDeleted
         );
+
+        //  Gán lại texture sau khi tạo panel
+        if (existingTexture) {
+          newPanel.texture = existingTexture;
+        }
+
+        updatedBackPanels[panelKey] = newPanel;
       }
     }
   });

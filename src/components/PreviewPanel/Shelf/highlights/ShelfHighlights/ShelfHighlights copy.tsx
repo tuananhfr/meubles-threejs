@@ -4,7 +4,6 @@ import { ThreeEvent } from "@react-three/fiber";
 import DeleteModeComponent from "./DeleteModeComponent";
 import StandardReinforceModeComponent from "./StandardReinforceModeComponent";
 import { useConfig } from "../../../../context/ConfigContext";
-import TextureModeComponent from "./TextureModeComponent";
 
 const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
   width,
@@ -26,7 +25,6 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
     deleteMode: config.editShelf?.isOpenEditDelete || false,
     reinforcedMode: config.editShelf?.isOpenEditReinforced || false,
     standardMode: config.editShelf?.isOpenEditStandard || false,
-    textureMode: config.editShelf?.isOpenEditTexture || false,
   }));
 
   // Previous mode state to detect changes
@@ -34,7 +32,6 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
     isOpenEditStandard: config.editShelf?.isOpenEditStandard || false,
     isOpenEditReinforced: config.editShelf?.isOpenEditReinforced || false,
     isOpenEditDelete: config.editShelf?.isOpenEditDelete || false,
-    isOpenEditTexture: config.editShelf?.isOpenEditTexture || false,
   }));
 
   // Synchronize mode state with config
@@ -45,14 +42,12 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
     const newDeleteMode = config.editShelf?.isOpenEditDelete || false;
     const newReinforcedMode = config.editShelf?.isOpenEditReinforced || false;
     const newStandardMode = config.editShelf?.isOpenEditStandard || false;
-    const newTextureMode = config.editShelf?.isOpenEditTexture || false;
 
     // Determine current mode state
     const currentEditMode = {
       isOpenEditStandard: newStandardMode,
       isOpenEditReinforced: newReinforcedMode,
       isOpenEditDelete: newDeleteMode,
-      isOpenEditTexture: newTextureMode,
     };
 
     // Check if mode has changed
@@ -61,70 +56,42 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
         previousEditMode.isOpenEditStandard ||
       currentEditMode.isOpenEditReinforced !==
         previousEditMode.isOpenEditReinforced ||
-      currentEditMode.isOpenEditDelete !== previousEditMode.isOpenEditDelete ||
-      currentEditMode.isOpenEditTexture !== previousEditMode.isOpenEditTexture;
+      currentEditMode.isOpenEditDelete !== previousEditMode.isOpenEditDelete;
 
     // Only update if mode has actually changed
     if (hasModeChanged) {
-      // Chỉ reset selections khi chuyển từ mode khác sang mode khác
-      // KHÔNG reset khi texture mode được bật
-      const shouldResetSelections =
-        // Reset khi tắt tất cả modes
-        (!newDeleteMode &&
-          !newReinforcedMode &&
-          !newStandardMode &&
-          !newTextureMode) ||
-        // Reset khi chuyển từ texture mode sang mode khác (không phải texture)
-        (previousEditMode.isOpenEditTexture &&
-          !newTextureMode &&
-          (newDeleteMode || newReinforcedMode || newStandardMode)) ||
-        // Reset khi chuyển từ các mode khác sang texture mode
-        (!previousEditMode.isOpenEditTexture &&
-          newTextureMode &&
-          (previousEditMode.isOpenEditDelete ||
-            previousEditMode.isOpenEditReinforced ||
-            previousEditMode.isOpenEditStandard)) ||
-        // Reset khi chuyển giữa các mode không phải texture
-        (!newTextureMode &&
-          !previousEditMode.isOpenEditTexture &&
-          hasModeChanged);
-
-      if (shouldResetSelections) {
-        // Đánh dấu đang trong quá trình reset
-        hasResetRef.current = true;
-
-        // Reset selections
-        setSelectedShelves([]);
-
-        // Update config with empty selection
-        updateConfig("editShelf", {
-          ...config.editShelf,
-          selectedShelves: [],
-          isOpenOption: false,
-        });
-
-        // Reset flag sau một khoảng thời gian
-        setTimeout(() => {
-          hasResetRef.current = false;
-        }, 100);
-      }
+      // Đánh dấu đang trong quá trình reset
+      hasResetRef.current = true;
 
       // Batch mode updates to prevent flickering
       setCurrentMode({
         deleteMode: newDeleteMode,
         reinforcedMode: newReinforcedMode,
         standardMode: newStandardMode,
-        textureMode: newTextureMode,
+      });
+
+      // Reset selections
+      setSelectedShelves([]);
+
+      // Update config with empty selection
+      updateConfig("editShelf", {
+        ...config.editShelf,
+        selectedShelves: [],
+        isOpenOption: false,
       });
 
       // Update previous mode reference
       setPreviousEditMode(currentEditMode);
+
+      // Reset flag sau một khoảng thời gian
+      setTimeout(() => {
+        hasResetRef.current = false;
+      }, 100);
     }
   }, [
     config.editShelf?.isOpenEditStandard,
     config.editShelf?.isOpenEditReinforced,
     config.editShelf?.isOpenEditDelete,
-    config.editShelf?.isOpenEditTexture,
     updateConfig,
     previousEditMode,
   ]);
@@ -445,38 +412,33 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
     const newPositions = calculateShelfPositions();
     setShelfPositions(newPositions);
 
-    // Chỉ xóa selections khi KHÔNG ở texture mode
-    if (!config.editShelf?.isOpenEditTexture) {
-      // Xóa các kệ đã chọn khi cấu trúc thay đổi (chỉ khi không ở texture mode)
-      setSelectedShelves([]);
+    // Xóa các kệ đã chọn khi cấu trúc thay đổi
+    setSelectedShelves([]);
 
-      // Cập nhật lại config nếu cần
-      if (config.editShelf?.selectedShelves?.length > 0) {
-        // Lọc ra những kệ vẫn còn tồn tại sau khi cấu trúc thay đổi
-        const validShelves = config.editShelf.selectedShelves.filter(
-          (shelf) => {
-            // Kiểm tra xem kệ này có còn hợp lệ không
-            const columnIndex = shelf.column;
-            const rowIndex = shelf.row;
-            const totalShelves = getNumberOfShelvesForColumn(columnIndex);
+    // Cập nhật lại config nếu cần
+    if (config.editShelf?.selectedShelves?.length > 0) {
+      // Lọc ra những kệ vẫn còn tồn tại sau khi cấu trúc thay đổi
+      const validShelves = config.editShelf.selectedShelves.filter((shelf) => {
+        // Kiểm tra xem kệ này có còn hợp lệ không
+        const columnIndex = shelf.column;
+        const rowIndex = shelf.row;
+        const totalShelves = getNumberOfShelvesForColumn(columnIndex);
 
-            // Nếu là kệ ảo
-            if (shelf.isVirtual) {
-              const baseRow = Math.floor(rowIndex);
-              return baseRow < totalShelves; // Hợp lệ nếu hàng cơ sở < tổng số kệ
-            }
+        // Nếu là kệ ảo
+        if (shelf.isVirtual) {
+          const baseRow = Math.floor(rowIndex);
+          return baseRow < totalShelves; // Hợp lệ nếu hàng cơ sở < tổng số kệ
+        }
 
-            // Nếu là kệ thường
-            return rowIndex <= totalShelves;
-          }
-        );
+        // Nếu là kệ thường
+        return rowIndex <= totalShelves;
+      });
 
-        // Cập nhật lại config với danh sách kệ hợp lệ
-        updateConfig("editShelf", {
-          ...config.editShelf,
-          selectedShelves: validShelves,
-        });
-      }
+      // Cập nhật lại config với danh sách kệ hợp lệ
+      updateConfig("editShelf", {
+        ...config.editShelf,
+        selectedShelves: validShelves,
+      });
     }
   }, [
     config.columnWidths,
@@ -490,7 +452,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
     thickness,
   ]);
 
-  // Xử lý khi nhấp vào kệ - GIỮ NGUYÊN LOGIC CŨ
+  // Xử lý khi nhấp vào kệ
   const handleShelfClick = (shelfInfo: any) => {
     const shelfId = shelfInfo.id;
 
@@ -551,7 +513,6 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
           isReinforcedValue = false;
           isStandardValue = true;
         }
-        // Không set default values cho texture mode
 
         return {
           index: shelf.isVirtual
@@ -575,19 +536,15 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
       })
       .filter(Boolean) as ShelfInfo[];
 
-    // Preserve all current states for texture mode
-    const currentEditShelf = config.editShelf || {};
-
+    // Cập nhật config với danh sách các kệ đã chọn
     updateConfig("editShelf", {
-      ...currentEditShelf,
+      ...config.editShelf,
       isOpenOption: selectedShelvesInfo.length > 0,
       selectedShelves: selectedShelvesInfo,
-      // Preserve texture mode state và không auto-set isOpenMenu
-      isOpenEditTexture: currentEditShelf.isOpenEditTexture || false,
     });
   };
 
-  // Xử lý sự kiện hover - GIỮ NGUYÊN
+  // Xử lý sự kiện hover
   const handlePointerMove = (event: ThreeEvent<PointerEvent>) => {
     const { point } = event;
     let hoveredShelfId = null;
@@ -621,13 +578,13 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
     }
   };
 
-  // Reset khi pointer rời khỏi kệ - GIỮ NGUYÊN
+  // Reset khi pointer rời khỏi kệ
   const handlePointerLeave = () => {
     setHoveredShelf(null);
     document.body.style.cursor = "auto";
   };
 
-  // Cập nhật hoặc khởi tạo selectedShelves nếu chưa có - GIỮ NGUYÊN
+  // Cập nhật hoặc khởi tạo selectedShelves nếu chưa có
   useEffect(() => {
     if (hasResetRef.current) return;
 
@@ -639,13 +596,12 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
     }
   }, [config.editShelf, updateConfig]);
 
-  // Reset selected shelves khi menu đóng - NHƯNG KHÔNG reset cho texture mode
+  // Reset selected shelves khi menu đóng
   useEffect(() => {
     // Bỏ qua nếu đang trong quá trình reset
     if (hasResetRef.current) return;
 
-    // Chỉ reset khi menu đóng VÀ KHÔNG ở texture mode
-    if (!config.editShelf?.isOpenMenu && !config.editShelf?.isOpenEditTexture) {
+    if (!config.editShelf?.isOpenMenu) {
       setSelectedShelves([]);
       setHoveredShelf(null);
       document.body.style.cursor = "auto";
@@ -658,19 +614,13 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
           isOpenEditStandard: false,
           isOpenEditReinforced: false,
           isOpenEditDelete: false,
-          selectedShelves: [],
+          selectedShelves: config.editShelf.selectedShelves || [],
         });
       }
-    } else if (
-      config.editShelf?.isOpenMenu &&
-      !config.editShelf.selectedShelves?.length
-    ) {
-      // Chỉ reset nếu menu mở nhưng không có selections và không ở texture mode
-      if (!config.editShelf.isOpenEditTexture) {
-        setSelectedShelves([]);
-        setHoveredShelf(null);
-        document.body.style.cursor = "auto";
-      }
+    } else if (config.editShelf && !config.editShelf.selectedShelves?.length) {
+      setSelectedShelves([]);
+      setHoveredShelf(null);
+      document.body.style.cursor = "auto";
     }
   }, [config.editShelf, updateConfig]);
 
@@ -680,17 +630,13 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
     setShelfPositions(positions);
   }, []);
 
-  // Điều kiện hiển thị
-  const shouldShowTextureMode = config.editShelf?.isOpenEditTexture;
-
-  const shouldShowOtherModes =
-    config.editShelf?.isOpenMenu &&
-    (config.editShelf?.isOpenEditReinforced ||
-      config.editShelf?.isOpenEditStandard ||
-      config.editShelf?.isOpenEditDelete);
-
-  // Hiển thị khi một trong hai điều kiện được thỏa mãn
-  if (!shouldShowTextureMode && !shouldShowOtherModes) {
+  // Chỉ hiển thị khi menu đang mở và một trong các chế độ chỉnh sửa đang kích hoạt
+  if (
+    !config.editShelf?.isOpenMenu ||
+    (!config.editShelf?.isOpenEditReinforced &&
+      !config.editShelf?.isOpenEditStandard &&
+      !config.editShelf?.isOpenEditDelete)
+  ) {
     return null;
   }
 
@@ -699,17 +645,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
     >
-      {shouldShowTextureMode ? (
-        <TextureModeComponent
-          shelfPositions={shelfPositions}
-          selectedShelves={selectedShelves}
-          hoveredShelf={hoveredShelf}
-          depth={depth}
-          handleShelfClick={handleShelfClick}
-          hasResetRef={hasResetRef}
-          isStandardOrReinforcedShelf={isStandardOrReinforcedShelf}
-        />
-      ) : currentMode.deleteMode ? (
+      {currentMode.deleteMode ? (
         <DeleteModeComponent
           shelfPositions={shelfPositions}
           selectedShelves={selectedShelves}
