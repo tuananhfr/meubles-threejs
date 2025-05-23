@@ -1,4 +1,9 @@
+import React from "react";
+import { usePrice } from "../../../hooks/usePrice";
+
 const PriceSection: React.FC = () => {
+  const { price, originalPrice } = usePrice();
+
   return (
     <div className="d-flex align-items-center w-100">
       <div className="d-flex flex-row w-100">
@@ -8,12 +13,13 @@ const PriceSection: React.FC = () => {
           style={{ minWidth: 70 }}
         >
           <div className="text-muted text-decoration-line-through fs-5">
-            169 €
+            {originalPrice?.toFixed(2)} €
           </div>
           <div className="fs-4" style={{ fontWeight: "bold", color: "#222" }}>
-            101 €
+            {price?.toFixed(2)} €
           </div>
         </div>
+
         {/* Cột thông tin */}
         <div className="d-flex flex-column justify-content-center">
           <div className="text-secondary" style={{ fontSize: 14 }}>
@@ -25,7 +31,9 @@ const PriceSection: React.FC = () => {
           </div>
           <div className="text-secondary" style={{ fontSize: 13 }}>
             Le prix le plus bas en 30 jours:{" "}
-            <span style={{ color: "#888" }}>84 €</span>
+            <span style={{ color: "#888" }}>
+              {((price || 0) * 0.9)?.toFixed(0)} €
+            </span>
           </div>
         </div>
       </div>

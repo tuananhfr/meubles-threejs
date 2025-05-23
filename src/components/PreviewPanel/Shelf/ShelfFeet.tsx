@@ -50,7 +50,7 @@ const ShelfFeet: React.FC<{
   // Các thông số kích thước chân
   const feetDimensions = {
     design: {
-      // Chân "lyft" giờ là một thanh dài ở giữa
+      // Chân "design" giờ là một thanh dài ở giữa
       width: totalWidth - 0.1, // 8cm chiều rộng của thanh dọc theo trục X
       height: feetHeight / 100, // Chiều cao (cm -> THREE.js)
       depth: depth - 0.1, // Chiều dài của thanh dọc theo trục Z (gần bằng chiều sâu của kệ)

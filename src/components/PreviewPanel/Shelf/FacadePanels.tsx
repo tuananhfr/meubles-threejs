@@ -3,28 +3,10 @@ import * as THREE from "three";
 import { ThreeEvent, useFrame } from "@react-three/fiber";
 import { useConfig } from "../../context/ConfigContext";
 
-interface DrawerAnimationData {
-  drawerKey: string;
-  startPosition: number;
-  targetPosition: number;
-  startTime: number;
-  duration: number;
-}
-
-interface DoorAnimationData {
-  doorKey: string;
-  startRotation: number;
-  targetRotation: number;
-  startTime: number;
-  duration: number;
-  hingePosition: [number, number, number];
-  isLeftHinged: boolean;
-}
-
 interface FacadePanelsProps {
   depth: number;
   thickness: number;
-  texture: THREE.Texture; // Texture mặc định từ config
+  texture: THREE.Texture;
 }
 
 const FacadePanels: React.FC<FacadePanelsProps> = ({

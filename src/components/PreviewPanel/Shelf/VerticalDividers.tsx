@@ -66,24 +66,22 @@ const VerticalDividers: React.FC<VerticalDividersProps> = ({
   const renderVerticalDividers = () => {
     const dividers: React.ReactNode[] = [];
 
-    // Tạo verticalPanels data dựa vào logic dividers (chỉ khi chưa có)
-    const newVerticalPanels: Record<string, VerticalPanelData> = {
-      ...config.verticalPanels,
-    };
+    // Tạo verticalPanels data hoàn toàn mới (không merge với data cũ)
+    const newVerticalPanels: Record<string, VerticalPanelData> = {};
 
     // 1. VÁCH NGOÀI TRÁI (Left Outer Wall)
     const leftWallHeight = getColumnHeight(0);
     const startX = -totalWidth / 2;
     const leftWallKey = "left-outer-wall";
 
-    // Chỉ thêm vào config nếu chưa có
-    if (!newVerticalPanels[leftWallKey]) {
-      newVerticalPanels[leftWallKey] = {
-        key: leftWallKey,
-        position: [startX, shelfBottomY + leftWallHeight / 2, 0],
-        dimensions: [thickness, leftWallHeight, depth],
-      };
-    }
+    // Cập nhật hoặc thêm panel data (luôn tạo mới)
+    newVerticalPanels[leftWallKey] = {
+      key: leftWallKey,
+      position: [startX, shelfBottomY + leftWallHeight / 2, 0],
+      dimensions: [thickness, leftWallHeight, depth],
+      // Giữ lại texture nếu có từ config cũ
+      texture: config.verticalPanels?.[leftWallKey]?.texture,
+    };
 
     // Render với texture riêng nếu có
     const leftWallTexture = getPanelTexture(leftWallKey);
@@ -113,14 +111,14 @@ const VerticalDividers: React.FC<VerticalDividersProps> = ({
       const dividerX = getColumnXPosition(col);
       const dividerKey = `vertical-divider-${col}`;
 
-      // Chỉ thêm vào config nếu chưa có
-      if (!newVerticalPanels[dividerKey]) {
-        newVerticalPanels[dividerKey] = {
-          key: dividerKey,
-          position: [dividerX, shelfBottomY + dividerHeight / 2, 0],
-          dimensions: [thickness, dividerHeight, depth],
-        };
-      }
+      // Cập nhật hoặc thêm panel data (luôn tạo mới)
+      newVerticalPanels[dividerKey] = {
+        key: dividerKey,
+        position: [dividerX, shelfBottomY + dividerHeight / 2, 0],
+        dimensions: [thickness, dividerHeight, depth],
+        // Giữ lại texture nếu có từ config cũ
+        texture: config.verticalPanels?.[dividerKey]?.texture,
+      };
 
       // Render với texture riêng nếu có
       const dividerTexture = getPanelTexture(dividerKey);
@@ -148,14 +146,14 @@ const VerticalDividers: React.FC<VerticalDividersProps> = ({
     const rightWallX = lastColX + lastColWidth + thickness;
     const rightWallKey = "right-outer-wall";
 
-    // Chỉ thêm vào config nếu chưa có
-    if (!newVerticalPanels[rightWallKey]) {
-      newVerticalPanels[rightWallKey] = {
-        key: rightWallKey,
-        position: [rightWallX, shelfBottomY + lastColHeight / 2, 0],
-        dimensions: [thickness, lastColHeight, depth],
-      };
-    }
+    // Cập nhật hoặc thêm panel data (luôn tạo mới)
+    newVerticalPanels[rightWallKey] = {
+      key: rightWallKey,
+      position: [rightWallX, shelfBottomY + lastColHeight / 2, 0],
+      dimensions: [thickness, lastColHeight, depth],
+      // Giữ lại texture nếu có từ config cũ
+      texture: config.verticalPanels?.[rightWallKey]?.texture,
+    };
 
     // Render với texture riêng nếu có
     const rightWallTexture = getPanelTexture(rightWallKey);
@@ -173,7 +171,7 @@ const VerticalDividers: React.FC<VerticalDividersProps> = ({
       </mesh>
     );
 
-    // Cập nhật config.verticalPanels với data mới (chỉ khi có thay đổi)
+    // Luôn cập nhật config.verticalPanels với data mới (rebuild hoàn toàn)
     if (
       JSON.stringify(config.verticalPanels) !==
       JSON.stringify(newVerticalPanels)

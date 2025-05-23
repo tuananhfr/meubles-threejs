@@ -18,6 +18,7 @@ declare global {
     thickness: number;
     price: number;
     originalPrice: number;
+    componentPrice: Price;
     position: string;
     activeView: string;
     columns: number;
@@ -42,6 +43,13 @@ declare global {
     cellHeight: number;
   }
 
+  interface Price {
+    priceVerticalShelves: number;
+    priceBackPanels: number;
+    priceHorizontalShelves: number;
+    priceFacadePanels: number;
+    priceFeet: number;
+  }
   interface VerticalPanelData {
     key: string;
     texture?: Texture;
@@ -296,8 +304,10 @@ declare global {
 
   interface VerticalDividersProps {
     columns: number;
+
     depth: number;
     thickness: number;
+
     shelfBottomY: number;
     texture: THREE.Texture;
     getColumnHeight: (colIndex: number) => number;

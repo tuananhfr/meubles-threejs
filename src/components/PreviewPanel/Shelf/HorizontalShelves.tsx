@@ -207,12 +207,12 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
                   shelfBottomY + thickness / 2,
                   depth / 2 + 0.01,
                 ]}
-                color="#4CAF50"
-                fontSize={0.1}
+                color="#000000"
+                fontSize={0.05}
                 anchorX="left"
                 anchorY="middle"
               >
-                F
+                ⚫
               </Text>
             )}
           </group>
@@ -241,12 +241,12 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
                   shelfBottomY + colHeight - thickness / 2,
                   depth / 2 + 0.01,
                 ]}
-                color="#4CAF50"
-                fontSize={0.1}
+                color="#000000"
+                fontSize={0.05}
                 anchorX="left"
                 anchorY="middle"
               >
-                F
+                ⚫
               </Text>
             )}
           </group>
@@ -283,12 +283,12 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
                     rowY,
                     depth / 2 + 0.01,
                   ]}
-                  color="#4CAF50" // Màu xanh lá cho kệ tăng cường
-                  fontSize={0.1}
+                  color="#000000"
+                  fontSize={0.05}
                   anchorX="left"
                   anchorY="middle"
                 >
-                  F
+                  ⚫
                 </Text>
               )}
             </group>
@@ -337,12 +337,12 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
                       rowY,
                       depth / 2 + 0.01,
                     ]}
-                    color="#4CAF50" // Màu xanh lá cho kệ tăng cường
-                    fontSize={0.1}
+                    color="#000000"
+                    fontSize={0.05}
                     anchorX="left"
                     anchorY="middle"
                   >
-                    F
+                    ⚫
                   </Text>
                 )}
               </group>
@@ -375,12 +375,12 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
                     rowY,
                     depth / 2 + 0.01,
                   ]}
-                  color="#4CAF50" // Màu xanh lá cho kệ tăng cường
-                  fontSize={0.1}
+                  color="#000000"
+                  fontSize={0.05}
                   anchorX="left"
                   anchorY="middle"
                 >
-                  F
+                  ⚫
                 </Text>
               </group>
             );
@@ -487,12 +487,12 @@ const HorizontalShelves: React.FC<HorizontalShelvesProps> = ({
                     rowY,
                     depth / 2 + 0.01,
                   ]}
-                  color="#4CAF50" // Màu xanh lá cho kệ tăng cường
-                  fontSize={0.1}
+                  color="#000000"
+                  fontSize={0.05}
                   anchorX="left"
                   anchorY="middle"
                 >
-                  F
+                  ⚫
                 </Text>
               )}
             </group>

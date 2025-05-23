@@ -4,7 +4,6 @@ import { useConfig } from "../../context/ConfigContext";
 import { useLoader } from "@react-three/fiber";
 import { TextureLoader } from "three";
 
-import LineWithLabel from "../LineWithLabel";
 import ColumnHighlights from "./highlights/ColumnHighlights";
 import ShelfHighlights from "./highlights/ShelfHighlights/ShelfHighlights";
 import VerticalDividers from "./VerticalDividers";
@@ -16,6 +15,7 @@ import FacadeHighlights from "./highlights/FacadeHighlights";
 import VerticalPanelsHighlights from "./highlights/VerticalPanelsHighlights";
 import FacadePanels from "./FacadePanels";
 import BackPanels from "./BackPanels";
+import ShelfMeasurements from "./ShelfMeasurements";
 
 interface ShelfModelProps {
   showMeasurements?: boolean;
@@ -33,7 +33,6 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
   const texture = useLoader(TextureLoader, config.texture.src);
 
   const {
-    height,
     depth,
     thickness,
     columns,
@@ -48,7 +47,7 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
     getColumnWidth,
     getColumnXPosition,
   } = useShelfCalculations();
-
+  console.log(config);
   return (
     <group ref={groupRef}>
       {/* Toàn bộ kệ sách */}
@@ -104,25 +103,15 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
       {/* Measurements (when enabled) */}
       {showMeasurements && (
         <group>
-          {/* Width measurement */}
-          <LineWithLabel
-            start={[-totalWidth / 2, shelfBottomY - 0.1, 0]}
-            end={[totalWidth / 2, shelfBottomY - 0.1, 0]}
-            label={`${config.width}cm`}
-          />
-
-          {/* Height measurement */}
-          <LineWithLabel
-            start={[totalWidth / 2 + 0.1, shelfBottomY, 0]}
-            end={[totalWidth / 2 + 0.1, shelfBottomY + height, 0]}
-            label={`${config.height}cm`}
-          />
-
-          {/* Depth measurement */}
-          <LineWithLabel
-            start={[totalWidth / 2 + 0.1, shelfBottomY, 0]}
-            end={[totalWidth / 2 + 0.1, shelfBottomY, -depth]}
-            label={`${config.depth}cm`}
+          <ShelfMeasurements
+            columns={columns}
+            depth={depth}
+            thickness={thickness}
+            cellHeight={cellHeight}
+            shelfBottomY={shelfBottomY}
+            getColumnHeight={getColumnHeight}
+            getColumnWidth={getColumnWidth}
+            getColumnXPosition={getColumnXPosition}
           />
         </group>
       )}

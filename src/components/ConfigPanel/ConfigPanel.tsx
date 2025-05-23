@@ -16,13 +16,64 @@ import TextureSelector from "./section/TextureSelector";
 const ConfigPanel: React.FC = () => {
   const { config, updateConfig, batchUpdate } = useConfig();
 
+  // Check if any editor menu is open
+  const isAnyEditorMenuOpen =
+    config.editColumns?.isOpenMenu ||
+    config.editShelf?.isOpenMenu ||
+    config.editFeet?.isOpenMenu ||
+    config.editFacade?.isOpenMenu ||
+    config.editBackboard?.isOpenMenu;
+
+  // Reset activeView to "Étagère entière" when any editor menu opens
+  React.useEffect(() => {
+    if (isAnyEditorMenuOpen && config.activeView !== "Étagère entière") {
+      // Sử dụng batchUpdate để thực hiện tất cả changes cùng lúc
+      const updates: any = {
+        activeView: "Étagère entière",
+      };
+
+      // Reset texture editing states
+      if (config.editShelf?.isOpenEditTexture) {
+        updates.editShelf = {
+          ...config.editShelf,
+          isOpenEditTexture: false,
+          selectedShelves: [],
+        };
+      }
+
+      if (config.editVerticalPanels?.isOpenEditTexture) {
+        updates.editVerticalPanels = {
+          ...config.editVerticalPanels,
+          isOpenEditTexture: false,
+          selectedPanels: [],
+        };
+      }
+
+      if (config.editFacade?.isOpenEditTexture) {
+        updates.editFacade = {
+          ...config.editFacade,
+          isOpenEditTexture: false,
+          selectedFacade: [],
+        };
+      }
+
+      if (config.editBackboard?.isOpenEditTexture) {
+        updates.editBackboard = {
+          ...config.editBackboard,
+          isOpenEditTexture: false,
+          selectedBackboard: [],
+          isSurfaceTotal: false,
+          isDeleteTotal: false,
+          isSurfaceOption: false,
+        };
+      }
+
+      batchUpdate(updates);
+    }
+  }, [isAnyEditorMenuOpen, config.activeView, batchUpdate]);
+
   // Logic để hiển thị menu chính
-  const isMainMenuOpen =
-    !config.editColumns?.isOpenMenu &&
-    !config.editShelf?.isOpenMenu &&
-    !config.editFeet?.isOpenMenu &&
-    !config.editFacade?.isOpenMenu &&
-    !config.editBackboard?.isOpenMenu;
+  const isMainMenuOpen = !isAnyEditorMenuOpen;
 
   // Các hàm xử lý để mở các menu phụ
   const handleEditColumns = () => {

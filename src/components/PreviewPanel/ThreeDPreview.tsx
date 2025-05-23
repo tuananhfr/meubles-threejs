@@ -42,7 +42,7 @@ const ThreeDPreview: React.FC = () => {
         />
         <pointLight position={[-10, -10, -10]} />
 
-        <ShelfModel />
+        <ShelfModel showMeasurements={showMeasurements} />
 
         <CameraController
           zoomInTriggered={zoomInTriggered}

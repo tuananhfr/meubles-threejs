@@ -25,8 +25,6 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
   const initialcellHeight = 36; // Chiều cao của ô
   const initialcellWidth = 36; // Chiều rộng của ô
 
-  const initialPrice = 0;
-
   // Tính toán chiều rộng mặc định cho mỗi cột (trừ đi độ dày vách ngăn)
   const totalThickness = initialThickness * (initialColumns + 1); // Tổng độ dày các vách ngăn
   const defaultColumnWidth = Math.floor(
@@ -129,8 +127,15 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     width: initialWidth,
     height: initialHeight,
     depth: initialDepth,
-    price: initialPrice,
-    originalPrice: initialPrice * 0.6,
+    price: 0,
+    originalPrice: 0,
+    componentPrice: {
+      priceBackPanels: 0,
+      priceHorizontalShelves: 0,
+      priceVerticalShelves: 0,
+      priceFacadePanels: 0,
+      priceFeet: 0,
+    },
     thickness: initialThickness,
     position: "Au sol",
     activeView: "Étagère entière",
@@ -144,7 +149,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     shelves: initializeShelves(),
     backPanels: {},
     facadePanels: {},
-    verticalPanels: {}, // ADDED: Khởi tạo rỗng, sẽ được sync bởi VerticalDividers
+    verticalPanels: {},
     editColumns: {
       isOpenMenu: false,
       isOpenOption: false,

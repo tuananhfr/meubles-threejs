@@ -1,18 +1,22 @@
-// Tạo file mới: src/components/PreviewPanel/LineWithLabel.tsx
+// LineWithLabel đơn giản với text option tại start
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
+
+interface LineWithLabelProps {
+  start: [number, number, number];
+  end: [number, number, number];
+  label: string;
+  color?: string;
+  backgroundColor?: string;
+}
 
 const LineWithLabel: React.FC<LineWithLabelProps> = ({
   start,
   end,
   label,
-  color = "#000000",
+  color = "#ffffff",
+  backgroundColor = "#1a1a1a",
 }) => {
-  // Tạo points cho line
-  const points = [];
-  points.push(new THREE.Vector3(...start));
-  points.push(new THREE.Vector3(...end));
-
   // Tính điểm giữa để đặt label
   const midPoint = new THREE.Vector3(
     (start[0] + end[0]) / 2,
@@ -20,39 +24,47 @@ const LineWithLabel: React.FC<LineWithLabelProps> = ({
     (start[2] + end[2]) / 2
   );
 
+  // Tính vector để xác định hướng và độ dài
+  const direction = new THREE.Vector3(
+    end[0] - start[0],
+    end[1] - start[1],
+    end[2] - start[2]
+  );
+
+  const normalizedDirection = direction.normalize();
+
+  // Tính rotation cho đường chính
+  const quaternion = new THREE.Quaternion();
+  quaternion.setFromUnitVectors(
+    new THREE.Vector3(1, 0, 0),
+    normalizedDirection
+  );
+
   return (
     <group>
-      <line>
-        <bufferGeometry attach="geometry">
-          <float32BufferAttribute
-            attach="attributes-position"
-            args={[
-              new Float32Array([
-                start[0],
-                start[1],
-                start[2],
-                end[0],
-                end[1],
-                end[2],
-              ]),
-              3,
-            ]}
+      {/* Label ở giữa */}
+      <group position={[midPoint.x, midPoint.y, midPoint.z + 0.005]}>
+        {/* Background */}
+        <mesh>
+          <planeGeometry args={[0.15, 0.04]} />
+          <meshBasicMaterial
+            color={backgroundColor}
+            transparent
+            opacity={0.9}
           />
-        </bufferGeometry>
-        <lineBasicMaterial attach="material" color={color} linewidth={2} />
-      </line>
+        </mesh>
 
-      <Text
-        position={[midPoint.x, midPoint.y, midPoint.z]}
-        fontSize={0.05}
-        color={color}
-        anchorX="center"
-        anchorY="middle"
-        outlineWidth={0.001}
-        outlineColor="#ffffff"
-      >
-        {label}
-      </Text>
+        {/* Text */}
+        <Text
+          position={[0, 0, 0.001]}
+          fontSize={0.03}
+          color={color}
+          anchorX="center"
+          anchorY="middle"
+        >
+          {label}
+        </Text>
+      </group>
     </group>
   );
 };
