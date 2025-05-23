@@ -27,7 +27,6 @@ const ConfigPanel: React.FC = () => {
   // Reset activeView to "Étagère entière" when any editor menu opens
   React.useEffect(() => {
     if (isAnyEditorMenuOpen && config.activeView !== "Étagère entière") {
-      // Sử dụng batchUpdate để thực hiện tất cả changes cùng lúc
       const updates: any = {
         activeView: "Étagère entière",
       };
@@ -116,15 +115,10 @@ const ConfigPanel: React.FC = () => {
   };
 
   const handleChangePoses = (value: string) => {
-    // Nếu chọn "Suspendu", reset chân kệ về "sans_pieds" và điều chỉnh chiều cao
     if (value === "Suspendu") {
-      // Lưu lại chiều cao chân kệ hiện tại
       const currentFeetHeight = config.editFeet?.heightFeet || 0;
-
-      // Tính toán chiều cao mới (loại bỏ chiều cao chân kệ)
       const newHeight = config.height - currentFeetHeight;
 
-      // Cập nhật cả position, editFeet và height cùng lúc
       batchUpdate({
         position: value as "Au sol" | "Suspendu",
         editFeet: {
@@ -133,17 +127,15 @@ const ConfigPanel: React.FC = () => {
           heightFeet: 0,
           isOpenMenu: false,
         },
-        height: newHeight, // Cập nhật height để loại bỏ chiều cao chân kệ
+        height: newHeight,
       });
     } else {
-      // Nếu không phải "Suspendu", chỉ cập nhật position
       updateConfig("position", value as "Au sol" | "Suspendu");
     }
   };
 
   const selectorOptions = ["Étagère entière", "Tablettes", "Panneaux"];
 
-  // Only add "Pieds" option if not "sans_pieds"
   if (config.editFeet?.feetType !== "sans_pieds") {
     selectorOptions.push("Pieds");
   }
@@ -152,7 +144,6 @@ const ConfigPanel: React.FC = () => {
     selectorOptions.push("Façades");
   }
 
-  // Check if there are any back panels that are not removed
   if (config.backPanels && Object.keys(config.backPanels).length > 0) {
     const hasVisibleBackPanels = Object.values(config.backPanels).some(
       (panel) => !panel.isRemoved
@@ -171,24 +162,19 @@ const ConfigPanel: React.FC = () => {
       | "Pieds"
       | "Fonds";
 
-    // Cập nhật activeView
     updateConfig("activeView", newActiveView);
 
-    // Xử lý logic cho isOpenEditTexture
     if (newActiveView === "Tablettes") {
-      // Bật chế độ texture cho Tablettes
       updateConfig("editShelf", {
         ...config.editShelf,
         isOpenEditTexture: true,
         selectedShelves: [],
-        // Tắt các chế độ khác
         isOpenEditStandard: false,
         isOpenEditReinforced: false,
         isOpenEditDelete: false,
         isOpenMenu: false,
       });
     } else {
-      // Tắt chế độ texture cho các view khác
       if (config.editShelf?.isOpenEditTexture) {
         updateConfig("editShelf", {
           ...config.editShelf,
@@ -200,14 +186,12 @@ const ConfigPanel: React.FC = () => {
     }
 
     if (newActiveView === "Panneaux") {
-      // Bật chế độ texture cho Panneaux
       updateConfig("editVerticalPanels", {
         ...config.editVerticalPanels,
         isOpenEditTexture: true,
         selectedPanels: [],
       });
     } else {
-      // Tắt chế độ texture cho các view khác
       if (config.editVerticalPanels?.isOpenEditTexture) {
         updateConfig("editVerticalPanels", {
           ...config.editVerticalPanels,
@@ -218,7 +202,6 @@ const ConfigPanel: React.FC = () => {
     }
 
     if (newActiveView === "Façades") {
-      // Bật chế độ texture cho Façades
       updateConfig("editFacade", {
         ...config.editFacade,
         isOpenEditTexture: true,
@@ -226,7 +209,6 @@ const ConfigPanel: React.FC = () => {
         isOpenMenu: false,
       });
     } else {
-      // Tắt chế độ texture cho các view khác
       if (config.editFacade?.isOpenEditTexture) {
         updateConfig("editFacade", {
           ...config.editFacade,
@@ -237,9 +219,7 @@ const ConfigPanel: React.FC = () => {
       }
     }
 
-    // Xử lý logic cho Fonds
     if (newActiveView === "Fonds") {
-      // Bật chế độ texture cho Fonds
       updateConfig("editBackboard", {
         ...config.editBackboard,
         isOpenEditTexture: true,
@@ -250,7 +230,6 @@ const ConfigPanel: React.FC = () => {
         isSurfaceOption: false,
       });
     } else {
-      // Tắt chế độ texture cho các view khác
       if (config.editBackboard?.isOpenEditTexture) {
         updateConfig("editBackboard", {
           ...config.editBackboard,
@@ -284,107 +263,191 @@ const ConfigPanel: React.FC = () => {
 
       {/* Hiển thị menu chính nếu không có menu phụ nào đang mở */}
       {isMainMenuOpen && (
-        <div>
-          {/* Largeur */}
-          <DimensionControl
-            label="Largeur"
-            value={config.width}
-            min={40}
-            max={420}
-            step={38}
-            onChange={(value: number) => updateConfig("width", value)}
-          />
-          {/* Hauteur */}
-          <DimensionControl
-            label="Hauteur"
-            value={config.height}
-            min={40 + (config.editFeet?.heightFeet || 0)}
-            max={420 + (config.editFeet?.heightFeet || 0)}
-            step={38}
-            onChange={(value: number) => handleChangeHeight(value)}
-          />
-          {/* Profondeur */}
-          <div className="dimension-control">
-            <label className="dimension-label">Profondeur</label>
-            <OptionButtons
-              options={["36 cm", "48 cm"]}
-              activeOption={`${config.depth} cm`}
-              onChange={(value: string) =>
-                updateConfig("depth", parseInt(value))
-              }
-              showInfo={true}
-            />
+        <div className="accordion" id="configAccordion">
+          {/* Dimensions Section */}
+          <div className="accordion-item">
+            <h2 className="accordion-header" id="headingDimensions">
+              <button
+                className="accordion-button"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseDimensions"
+                aria-expanded="true"
+                aria-controls="collapseDimensions"
+              >
+                Dimensions
+              </button>
+            </h2>
+            <div
+              id="collapseDimensions"
+              className="accordion-collapse collapse show"
+              aria-labelledby="headingDimensions"
+              data-bs-parent="#configAccordion"
+            >
+              <div className="accordion-body">
+                {/* Largeur */}
+                <DimensionControl
+                  label="Largeur"
+                  value={config.width}
+                  min={40}
+                  max={420}
+                  step={38}
+                  onChange={(value: number) => updateConfig("width", value)}
+                />
+
+                {/* Hauteur */}
+                <DimensionControl
+                  label="Hauteur"
+                  value={config.height}
+                  min={40 + (config.editFeet?.heightFeet || 0)}
+                  max={420 + (config.editFeet?.heightFeet || 0)}
+                  step={38}
+                  onChange={(value: number) => handleChangeHeight(value)}
+                />
+
+                {/* Profondeur */}
+                <div className="dimension-control">
+                  <label className="dimension-label">Profondeur</label>
+                  <OptionButtons
+                    options={["36 cm", "48 cm"]}
+                    activeOption={`${config.depth} cm`}
+                    onChange={(value: string) =>
+                      updateConfig("depth", parseInt(value))
+                    }
+                    showInfo={true}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-          {/* Poses */}
-          <OptionSection title="Poses">
-            <OptionButtons
-              options={["Au sol", "Suspendu"]}
-              activeOption={config.position}
-              onChange={handleChangePoses}
-              showInfo={true}
-            />
-          </OptionSection>
-          {/* Colonnes */}
-          <OptionSection
-            title="Colonnes"
-            actionText="Éditer"
-            onActionClick={handleEditColumns}
-          />
-          {/* Pieds - Only show if position is "Au sol" */}
-          {config.position === "Au sol" && (
-            <OptionSection
-              title="Pieds"
-              actionText="Ajouter/Supprimer"
-              onActionClick={handleEditFeet}
-            />
-          )}
-          {/* Façades */}
-          <OptionSection
-            title="Façades"
-            actionText="Ajouter/Supprimer"
-            onActionClick={handleEditFacade}
-          />
-          {/* Fonds */}
-          <OptionSection
-            title="Fonds"
-            actionText="Ajouter/Supprimer"
-            onActionClick={handleEditBackboard}
-          />
-          {/* Tablettes */}
-          <OptionSection
-            title="Tablettes"
-            actionText="Ajouter/Supprimer"
-            onActionClick={handleEditShelf}
-          />
-          {/* Sélecteurs */}
-          <SelectorButtons
-            options={selectorOptions}
-            activeOption={config.activeView}
-            onChange={handleActiveViewChange}
-          />
-          {/* Các TextureSelector tương ứng với từng view */}
-          {config.activeView === "Étagère entière" && (
-            <TextureSelector type="entier" />
-          )}
 
-          {config.activeView === "Pieds" &&
-            config.editFeet?.feetType !== "sans_pieds" && (
-              <TextureSelector type="feet" />
-            )}
+          {/* Configuration Section */}
+          <div className="accordion-item">
+            <h2 className="accordion-header" id="headingConfiguration">
+              <button
+                className="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseConfiguration"
+                aria-expanded="false"
+                aria-controls="collapseConfiguration"
+              >
+                Configuration
+              </button>
+            </h2>
+            <div
+              id="collapseConfiguration"
+              className="accordion-collapse collapse"
+              aria-labelledby="headingConfiguration"
+              data-bs-parent="#configAccordion"
+            >
+              <div className="accordion-body">
+                {/* Poses */}
+                <OptionSection title="Poses">
+                  <OptionButtons
+                    options={["Au sol", "Suspendu"]}
+                    activeOption={config.position}
+                    onChange={handleChangePoses}
+                    showInfo={true}
+                  />
+                </OptionSection>
 
-          {config.activeView === "Tablettes" && (
-            <TextureSelector type="tablette" />
-          )}
+                {/* Colonnes */}
+                <OptionSection
+                  title="Colonnes"
+                  actionText="Éditer"
+                  onActionClick={handleEditColumns}
+                />
 
-          {config.activeView === "Panneaux" && (
-            <TextureSelector type="vertical" />
-          )}
+                {/* Pieds - Only show if position is "Au sol" */}
+                {config.position === "Au sol" && (
+                  <OptionSection
+                    title="Pieds"
+                    actionText="Ajouter/Supprimer"
+                    onActionClick={handleEditFeet}
+                  />
+                )}
 
-          {config.activeView === "Façades" && <TextureSelector type="facade" />}
+                {/* Façades */}
+                <OptionSection
+                  title="Façades"
+                  actionText="Ajouter/Supprimer"
+                  onActionClick={handleEditFacade}
+                />
 
-          {config.activeView === "Fonds" && (
-            <TextureSelector type="backboard" />
-          )}
+                {/* Fonds */}
+                <OptionSection
+                  title="Fonds"
+                  actionText="Ajouter/Supprimer"
+                  onActionClick={handleEditBackboard}
+                />
+
+                {/* Tablettes */}
+                <OptionSection
+                  title="Tablettes"
+                  actionText="Ajouter/Supprimer"
+                  onActionClick={handleEditShelf}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Selection & Textures Section */}
+          <div className="accordion-item">
+            <h2 className="accordion-header" id="headingTextures">
+              <button
+                className="accordion-button collapsed"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#collapseTextures"
+                aria-expanded="false"
+                aria-controls="collapseTextures"
+              >
+                Sélection & Textures
+              </button>
+            </h2>
+            <div
+              id="collapseTextures"
+              className="accordion-collapse collapse"
+              aria-labelledby="headingTextures"
+              data-bs-parent="#configAccordion"
+            >
+              <div className="accordion-body">
+                {/* Sélecteurs */}
+                <SelectorButtons
+                  options={selectorOptions}
+                  activeOption={config.activeView}
+                  onChange={handleActiveViewChange}
+                />
+
+                {/* Các TextureSelector tương ứng với từng view */}
+                {config.activeView === "Étagère entière" && (
+                  <TextureSelector type="entier" />
+                )}
+
+                {config.activeView === "Pieds" &&
+                  config.editFeet?.feetType !== "sans_pieds" && (
+                    <TextureSelector type="feet" />
+                  )}
+
+                {config.activeView === "Tablettes" && (
+                  <TextureSelector type="tablette" />
+                )}
+
+                {config.activeView === "Panneaux" && (
+                  <TextureSelector type="vertical" />
+                )}
+
+                {config.activeView === "Façades" && (
+                  <TextureSelector type="facade" />
+                )}
+
+                {config.activeView === "Fonds" && (
+                  <TextureSelector type="backboard" />
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </>

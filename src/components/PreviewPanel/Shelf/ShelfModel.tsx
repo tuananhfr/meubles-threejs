@@ -47,7 +47,7 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
     getColumnWidth,
     getColumnXPosition,
   } = useShelfCalculations();
-  console.log(config);
+
   return (
     <group ref={groupRef}>
       {/* Toàn bộ kệ sách */}

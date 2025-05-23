@@ -2,6 +2,12 @@ import React, { useMemo } from "react";
 import { useConfig } from "../../context/ConfigContext";
 import { shelfToKey } from "../../../utils/shelfUtils";
 
+// Type cho thông tin đếm components sử dụng texture
+interface EntierInfo {
+  count: number;
+  details: string[];
+}
+
 // Sửa đổi props để component có thể sử dụng cho texture chân kệ, toàn bộ kệ, tablette, vertical panels, facade, và backboard
 interface TextureSelectorProps {
   type: "feet" | "entier" | "tablette" | "vertical" | "facade" | "backboard";
@@ -9,6 +15,138 @@ interface TextureSelectorProps {
 
 const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
   const { config, updateConfig } = useConfig();
+
+  // Hàm để lấy tất cả các texture đang được sử dụng trong toàn bộ kệ
+  const getAllUsedTextures = useMemo(() => {
+    if (type !== "entier") {
+      return new Set();
+    }
+
+    const textures = new Set<string>();
+
+    // Lấy texture mặc định
+    textures.add(config.texture.src);
+
+    // Lấy texture từ các shelves
+    if (config.shelves) {
+      Object.values(config.shelves).forEach((shelf: any) => {
+        if (shelf?.texture?.src) {
+          textures.add(shelf.texture.src);
+        }
+      });
+    }
+
+    // Lấy texture từ các vertical panels
+    if (config.verticalPanels) {
+      Object.values(config.verticalPanels).forEach((panel: any) => {
+        if (panel?.texture?.src) {
+          textures.add(panel.texture.src);
+        }
+      });
+    }
+
+    // Lấy texture từ các facade panels
+    if (config.facadePanels) {
+      Object.values(config.facadePanels).forEach((facadePanel: any) => {
+        if (facadePanel?.texture?.src) {
+          textures.add(facadePanel.texture.src);
+        }
+      });
+    }
+
+    // Lấy texture từ các backboard panels
+    if (config.backPanels) {
+      Object.values(config.backPanels).forEach((backPanel: any) => {
+        if (backPanel?.texture?.src) {
+          textures.add(backPanel.texture.src);
+        }
+      });
+    }
+
+    // Lấy texture từ feet nếu có
+    if (config.editFeet?.texture?.src) {
+      textures.add(config.editFeet.texture.src);
+    }
+
+    return textures;
+  }, [
+    config.texture.src,
+    config.shelves,
+    config.verticalPanels,
+    config.facadePanels,
+    config.backPanels,
+    config.editFeet?.texture,
+    type,
+  ]);
+
+  // Hàm để đếm số lượng thành phần sử dụng texture cho "entier"
+  const countComponentsUsingTextureForEntier = (
+    textureSrc: string
+  ): EntierInfo => {
+    if (type !== "entier") {
+      return { count: 0, details: [] };
+    }
+
+    let count = 0;
+    let details: string[] = [];
+
+    // Kiểm tra texture mặc định
+    if (config.texture.src === textureSrc) {
+      details.push("défaut");
+    }
+
+    // Đếm shelves
+    if (config.shelves) {
+      const shelfCount = Object.values(config.shelves).filter(
+        (shelf: any) => shelf?.texture?.src === textureSrc
+      ).length;
+      if (shelfCount > 0) {
+        count += shelfCount;
+        details.push(`${shelfCount} étagère${shelfCount > 1 ? "s" : ""}`);
+      }
+    }
+
+    // Đếm vertical panels
+    if (config.verticalPanels) {
+      const panelCount = Object.values(config.verticalPanels).filter(
+        (panel: any) => panel?.texture?.src === textureSrc
+      ).length;
+      if (panelCount > 0) {
+        count += panelCount;
+        details.push(`${panelCount} panneau${panelCount > 1 ? "x" : ""}`);
+      }
+    }
+
+    // Đếm facade panels
+    if (config.facadePanels) {
+      const facadeCount = Object.values(config.facadePanels).filter(
+        (facade: any) => facade?.texture?.src === textureSrc
+      ).length;
+      if (facadeCount > 0) {
+        count += facadeCount;
+        details.push(`${facadeCount} façade${facadeCount > 1 ? "s" : ""}`);
+      }
+    }
+
+    // Đếm backboard panels
+    if (config.backPanels) {
+      const backCount = Object.values(config.backPanels).filter(
+        (back: any) => back?.texture?.src === textureSrc
+      ).length;
+      if (backCount > 0) {
+        count += backCount;
+        details.push(`${backCount} fond${backCount > 1 ? "s" : ""}`);
+      }
+    }
+
+    // Kiểm tra feet
+    if (config.editFeet?.texture?.src === textureSrc) {
+      count += 1;
+      details.push("pieds");
+    }
+
+    return { count, details };
+  };
 
   // Hàm để lấy các texture đang được sử dụng bởi các shelves đã chọn
   const getSelectedShelvesTextures = useMemo(() => {
@@ -357,51 +495,11 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
     config.editBackboard?.selectedBackboard &&
     config.editBackboard.selectedBackboard.length > 0;
 
-  // Thêm hàm để clear selections cho tablette
-  const handleClearSelections = () => {
-    updateConfig("editShelf", {
-      ...config.editShelf,
-      isOpenEditTexture: false,
-      selectedShelves: [],
-      isOpenOption: false,
-    });
-  };
-
-  // Thêm hàm để clear selections cho vertical panels
-  const handleClearVerticalSelections = () => {
-    updateConfig("editVerticalPanels", {
-      ...config.editVerticalPanels,
-      isOpenEditTexture: false,
-      selectedPanels: [],
-    });
-  };
-
-  // Thêm hàm để clear selections cho facade panels
-  const handleClearFacadeSelections = () => {
-    updateConfig("editFacade", {
-      ...config.editFacade,
-      isOpenEditTexture: false,
-      selectedFacade: [],
-      isOpenMenu: false,
-    });
-  };
-
-  // Thêm hàm để clear selections cho backboard panels
-  const handleClearBackboardSelections = () => {
-    updateConfig("editBackboard", {
-      ...config.editBackboard,
-      isOpenEditTexture: false,
-      selectedBackboard: [],
-      isOpenMenu: false,
-      isSurfaceTotal: false,
-      isDeleteTotal: false,
-      isSurfaceOption: false,
-    });
-  };
-
   // Hàm để kiểm tra xem texture có đang được sử dụng không
   const isTextureActiveForSelected = (textureSrc: string) => {
     switch (type) {
+      case "entier":
+        return getAllUsedTextures.has(textureSrc);
       case "tablette":
         return getSelectedShelvesTextures.has(textureSrc);
       case "vertical":
@@ -506,6 +604,19 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
 
   return (
     <div className="texture-selector mt-3">
+      {/* Hiển thị thông báo về tình trạng texture cho tab "entier" */}
+      {type === "entier" && getAllUsedTextures.size > 1 && (
+        <div className="alert alert-info d-flex align-items-center justify-content-between mb-3">
+          <div className="d-flex align-items-center">
+            <i className="fas fa-info-circle me-2"></i>
+            <span>
+              {getAllUsedTextures.size} textures différentes sont utilisées dans
+              cette étagère
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Hiển thị thông báo khi là tablette nhưng chưa chọn shelf nào */}
       {type === "tablette" && !hasSelectedShelves && (
         <div className="alert alert-info d-flex align-items-center justify-content-between mb-3">
@@ -568,13 +679,6 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
               sélectionnée(s). Choisissez une texture à appliquer.
             </span>
           </div>
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            onClick={handleClearSelections}
-            title="Annuler la sélection"
-          >
-            <i className="fas fa-times"></i>
-          </button>
         </div>
       )}
 
@@ -588,13 +692,6 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
               sélectionné(s). Choisissez une texture à appliquer.
             </span>
           </div>
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            onClick={handleClearVerticalSelections}
-            title="Annuler la sélection"
-          >
-            <i className="fas fa-times"></i>
-          </button>
         </div>
       )}
 
@@ -608,13 +705,6 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
               sélectionnée(s). Choisissez une texture à appliquer.
             </span>
           </div>
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            onClick={handleClearFacadeSelections}
-            title="Annuler la sélection"
-          >
-            <i className="fas fa-times"></i>
-          </button>
         </div>
       )}
 
@@ -628,13 +718,6 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
               sélectionné(s). Choisissez une texture à appliquer.
             </span>
           </div>
-          <button
-            className="btn btn-sm btn-outline-secondary"
-            onClick={handleClearBackboardSelections}
-            title="Annuler la sélection"
-          >
-            <i className="fas fa-times"></i>
-          </button>
         </div>
       )}
 
@@ -755,6 +838,12 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
                 ? countBackboardsUsingTexture(texture.src)
                 : 0;
 
+            // Lấy thông tin về components sử dụng texture cho "entier"
+            const entierInfo: EntierInfo =
+              type === "entier"
+                ? countComponentsUsingTextureForEntier(texture.src)
+                : { count: 0, details: [] };
+
             return (
               <div key={index} className="position-relative">
                 <button
@@ -776,7 +865,9 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
                       : "none",
                   }}
                   title={`${texture.name}${
-                    type === "tablette" && shelfCount > 0
+                    type === "entier" && entierInfo.count > 0
+                      ? ` (${entierInfo.details.join(", ")})`
+                      : type === "tablette" && shelfCount > 0
                       ? ` (utilisée par ${shelfCount} étagère${
                           shelfCount > 1 ? "s" : ""
                         })`
@@ -818,7 +909,11 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
                         transform: "translate(25%, -25%)",
                       }}
                     >
-                      {type === "tablette" && shelfCount > 0
+                      {type === "entier" && entierInfo.count > 0
+                        ? entierInfo.count > 9
+                          ? "9+"
+                          : entierInfo.count
+                        : type === "tablette" && shelfCount > 0
                         ? shelfCount > 9
                           ? "9+"
                           : shelfCount
