@@ -4,7 +4,6 @@ import DimensionControl from "./section/DimensionControl";
 import OptionButtons from "./section/OptionButtons";
 import OptionSection from "./section/OptionSection";
 import SelectorButtons from "./section/SelectorButtons";
-import "../../css/components/ConfigPanel.css";
 import ColumnEditorPanel from "./ColumnEditor/ColumnEditorPanel";
 import ShelfEditorPanel from "./ShelfEditor/ShelfEditorPanel";
 import FeetEditorPanel from "./FeetEditor/FeetEditorPanel";
@@ -307,7 +306,7 @@ const ConfigPanel: React.FC = () => {
 
                 {/* Profondeur */}
                 <div className="dimension-control">
-                  <label className="dimension-label">Profondeur</label>
+                  <label className="dimension-label mb-1">Profondeur</label>
                   <OptionButtons
                     options={["36 cm", "48 cm"]}
                     activeOption={`${config.depth} cm`}
@@ -315,6 +314,7 @@ const ConfigPanel: React.FC = () => {
                       updateConfig("depth", parseInt(value))
                     }
                     showInfo={true}
+                    infoText="Une profondeur de 36cm est idéale pour les pièces étroites, tandis qu'une profondeur de 48cm offre davantage d'espace de rangement"
                   />
                 </div>
               </div>
@@ -349,6 +349,7 @@ const ConfigPanel: React.FC = () => {
                     activeOption={config.position}
                     onChange={handleChangePoses}
                     showInfo={true}
+                    infoText="Si vous optez pour une étagère murale, un mur en béton est le meilleur support de fixation"
                   />
                 </OptionSection>
 

@@ -52,7 +52,7 @@ const ThreeDPreview: React.FC = () => {
 
         <OrbitControls
           enablePan={true}
-          enableZoom={false} // Tắt zoom bằng con lăn chuột
+          enableZoom={false}
           enableRotate={true}
         />
 
@@ -63,6 +63,7 @@ const ThreeDPreview: React.FC = () => {
         onRulerClick={handleRulerClick}
         onZoomInClick={handleZoomInClick}
         onZoomOutClick={handleZoomOutClick}
+        isRulerActive={showMeasurements}
       />
     </div>
   );

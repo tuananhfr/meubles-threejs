@@ -7,13 +7,13 @@ const DimensionControl: React.FC<DimensionControlProps> = ({
   onChange,
 }) => {
   return (
-    <div className="dimension-control">
+    <div className="mb-3">
       <label>{label}</label> : <label htmlFor="">{value} cm</label>
       <div className="d-flex align-items-center">
         <span className="">{min} cm</span>
         <input
           type="range"
-          className="form-range dimension-slider"
+          className="form-range w-100 py-2"
           min={min}
           max={max}
           step={step}

@@ -5,12 +5,12 @@ const OptionSection: React.FC<OptionSectionProps> = ({
   onActionClick,
 }) => {
   return (
-    <div className="option-section">
+    <div className="py-3">
       <div className="d-flex justify-content-between">
-        <p className="option-title mb-0">{title}</p>
+        <p className="fw-normal text-darke mb-0">{title}</p>
         {actionText && (
           <a
-            className="action-link"
+            className="btn btn-link text-primary text-decoration-none small p-0"
             onClick={onActionClick}
             style={{ cursor: "pointer" }}
           >

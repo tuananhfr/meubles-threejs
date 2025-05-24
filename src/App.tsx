@@ -1,6 +1,5 @@
 import ConfigPanel from "./components/ConfigPanel/ConfigPanel";
 import PreviewPanel from "./components/PreviewPanel/PreviewPanel";
-import "./css/App.css";
 
 import ActionButtons from "./components/Button/ActionButtons";
 import PriceSection from "./components/ConfigPanel/section/PriceSection";
@@ -22,7 +21,7 @@ function App() {
           </div>
         </div>
 
-        <div className="col-lg-9 order-lg-2 preview-panel d-none d-lg-block h-100">
+        <div className="col-lg-9 order-lg-2 d-flex flex-column h-100 d-none d-lg-block h-100">
           <div className="h-100">
             <PreviewPanel />
           </div>
@@ -60,15 +59,18 @@ function App() {
         </div>
       </div>
 
-      {/* Bottom bar - Responsive */}
+      {/* Bottom bar - Responsive - SOLUTION: Une seule ligne avec flexbox */}
       <div
-        className="row border-top bg-light flex-shrink-0"
+        className="border-top bg-light flex-shrink-0 d-flex align-items-center justify-content-between px-3 py-2"
         style={{ minHeight: "70px" }}
       >
-        <div className="col-lg-6 col-12 d-flex align-items-center px-3 py-2">
+        {/* PriceSection à gauche */}
+        <div className="flex-grow-1 me-3">
           <PriceSection />
         </div>
-        <div className="col-lg-6 col-12 d-flex justify-content-lg-end align-items-center px-3 py-2">
+
+        {/* ActionButtons à droite */}
+        <div className="flex-shrink-0">
           <ActionButtons />
         </div>
       </div>
