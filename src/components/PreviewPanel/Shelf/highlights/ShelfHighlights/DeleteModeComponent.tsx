@@ -36,9 +36,9 @@ const DeleteModeComponent: React.FC<DeleteModeComponentProps> = ({
         }
 
         // Xác định style cho icon
-        let iconText = isSelected ? "✓" : "-";
-        let iconColor = "#f44336"; // Màu đỏ
-        let iconBackground = isHovered && !isSelected ? "#ffebee" : "#ffcdd2"; // Nền đỏ nhạt
+        const iconText = isSelected ? "✓" : "-";
+        const iconColor = "#f44336"; // Màu đỏ
+        const iconBackground = isHovered && !isSelected ? "#ffebee" : "#ffcdd2"; // Nền đỏ nhạt
 
         return (
           <React.Fragment key={`delete-shelf-${shelf.id}`}>

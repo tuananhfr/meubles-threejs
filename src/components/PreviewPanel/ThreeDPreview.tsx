@@ -1,10 +1,75 @@
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment } from "@react-three/drei";
+import { Environment } from "@react-three/drei";
 import ShelfModel from "./Shelf/ShelfModel";
-
 import CanvasControls from "./CanvasControls";
 import CameraController from "./CameraController";
 import { useState, useCallback } from "react";
+import { useThree } from "@react-three/fiber";
+import { OrbitControls } from "three-stdlib";
+import { useRef, useEffect } from "react";
+import { useFrame } from "@react-three/fiber";
+import React from "react";
+
+// Custom OrbitControls component
+interface CustomOrbitControlsProps {
+  enablePan?: boolean;
+  enableZoom?: boolean;
+  enableRotate?: boolean;
+}
+
+const CustomOrbitControls: React.FC<CustomOrbitControlsProps> = ({
+  enablePan = true,
+  enableZoom = false,
+  enableRotate = true,
+}) => {
+  const { camera, gl } = useThree();
+  const controlsRef = useRef<OrbitControls | null>(null);
+
+  useEffect(() => {
+    const controls = new OrbitControls(camera, gl.domElement);
+    controlsRef.current = controls;
+
+    // Set properties
+    controls.enablePan = enablePan;
+    controls.enableZoom = enableZoom;
+    controls.enableRotate = enableRotate;
+
+    // Expose controls to window
+    (window as Window).__THREE_CONTROLS__ = controls;
+
+    return () => {
+      controls.dispose();
+      (window as Window).__THREE_CONTROLS__ = null;
+    };
+  }, [camera, gl, enablePan, enableZoom, enableRotate]);
+
+  useFrame(() => {
+    if (controlsRef.current) {
+      controlsRef.current.update();
+    }
+  });
+
+  return null;
+};
+
+// Component để expose scene và camera ra ngoài
+const SceneExposer: React.FC = () => {
+  const { scene, camera } = useThree();
+
+  React.useEffect(() => {
+    // Set scene và camera lên window object
+    (window as Window).__THREE_SCENE__ = scene;
+    (window as Window).__THREE_CAMERA__ = camera;
+
+    return () => {
+      // Cleanup khi component unmount
+      (window as Window).__THREE_SCENE__ = null;
+      (window as Window).__THREE_CAMERA__ = null;
+    };
+  }, [scene, camera]);
+
+  return null;
+};
 
 const ThreeDPreview: React.FC = () => {
   const [showMeasurements, setShowMeasurements] = useState(false);
@@ -30,7 +95,10 @@ const ThreeDPreview: React.FC = () => {
 
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
-      <Canvas camera={{ position: [0, 0, 2.5], fov: 50 }}>
+      <Canvas
+        gl={{ preserveDrawingBuffer: true }}
+        camera={{ position: [0, 0, 2.5], fov: 50 }}
+      >
         <color attach="background" args={["#e5e6e8"]} />
 
         <ambientLight intensity={0.5} />
@@ -50,13 +118,17 @@ const ThreeDPreview: React.FC = () => {
           resetZoomTriggers={resetZoomTriggers}
         />
 
-        <OrbitControls
+        {/* Sử dụng custom OrbitControls thay vì từ drei */}
+        <CustomOrbitControls
           enablePan={true}
           enableZoom={false}
           enableRotate={true}
         />
 
         <Environment preset="apartment" />
+
+        {/* Component để expose scene và camera */}
+        <SceneExposer />
       </Canvas>
 
       <CanvasControls

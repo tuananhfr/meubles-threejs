@@ -1,5 +1,6 @@
 import { JSX } from "react";
 import * as THREE from "three";
+import type { OrbitControls } from "three-stdlib";
 declare global {
   // Định nghĩa kiểu cho context
   interface ConfigContextType {
@@ -38,7 +39,6 @@ declare global {
     columnHeights: ColumnDimensions;
     columnWidths: ColumnDimensions;
     columnWidthsOption: string;
-
     cellWidth: number;
     cellHeight: number;
   }
@@ -169,19 +169,41 @@ declare global {
     z: number;
   }
 
-  export interface ShelfInfo {
-    index: number;
+  // Base interface chứa các thuộc tính chung
+  export interface BaseShelfInfo {
     row: number;
     column: number;
     width: number;
     height: number;
-    depth: number;
-    position: ShelfPosition;
     isVirtual: boolean;
-    isReinforced: boolean;
     isStandard?: boolean;
+    isReinforced?: boolean;
     isRemoved?: boolean;
     totalShelves?: number;
+  }
+
+  // Position interface for 3D coordinates
+  export interface Position3D {
+    x: number;
+    y: number;
+    z: number;
+  }
+
+  // ShelfInfo extends từ base
+  export interface ShelfInfo extends BaseShelfInfo {
+    index: number;
+    depth: number;
+    position: Position3D;
+  }
+
+  // ShelfPosition extends từ base và thêm các thuộc tính riêng
+  export interface ShelfPosition extends BaseShelfInfo {
+    id: string;
+    x: number;
+    y: number;
+    z: number; // Required để khớp với khai báo khác
+    type: string;
+    isConverted?: boolean; // Optional property cho converted shelves
   }
 
   interface DimensionControlProps {
@@ -317,31 +339,31 @@ declare global {
   }
 
   interface DeleteModeComponentProps {
-    shelfPositions: any[];
+    shelfPositions: ShelfPosition[];
     selectedShelves: string[];
     hoveredShelf: string | null;
     depth: number;
-    handleShelfClick: (shelfInfo: any) => void;
+    handleShelfClick: (shelfInfo: ShelfPosition) => void;
     isStandardOrReinforcedShelf: (shelfId: string) => boolean;
     hasResetRef: React.RefObject<boolean>;
   }
 
   interface TextureModeComponentProps {
-    shelfPositions: any[];
+    shelfPositions: ShelfPosition[];
     selectedShelves: string[];
     hoveredShelf: string | null;
     depth: number;
-    handleShelfClick: (shelfInfo: any) => void;
-    isStandardOrReinforcedShelf: (shelfId: string) => boolean;
+    handleShelfClick: (shelfInfo: ShelfPosition) => void;
     hasResetRef: React.RefObject<boolean>;
+    isStandardOrReinforcedShelf: (shelfId: string) => boolean;
   }
 
   interface StandardReinforceComponentProps {
-    shelfPositions: any[];
+    shelfPositions: ShelfPosition[];
     selectedShelves: string[];
     hoveredShelf: string | null;
     depth: number;
-    handleShelfClick: (shelfInfo: any) => void;
+    handleShelfClick: (shelfInfo: ShelfPosition) => void;
     isStandardMode: boolean;
     isReinforcedMode: boolean;
     hasResetRef: React.RefObject<boolean>;
@@ -395,6 +417,12 @@ declare global {
     depth: number;
     thickness: number;
     texture: Texture;
+  }
+
+  interface Window {
+    __THREE_SCENE__?: THREE.Scene | null;
+    __THREE_CAMERA__?: THREE.Camera | null;
+    __THREE_CONTROLS__?: OrbitControls | null;
   }
 }
 

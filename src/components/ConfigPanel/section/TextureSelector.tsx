@@ -29,7 +29,7 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
 
     // Lấy texture từ các shelves
     if (config.shelves) {
-      Object.values(config.shelves).forEach((shelf: any) => {
+      Object.values(config.shelves).forEach((shelf: ShelfData) => {
         if (shelf?.texture?.src) {
           textures.add(shelf.texture.src);
         }
@@ -38,16 +38,18 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
 
     // Lấy texture từ các vertical panels
     if (config.verticalPanels) {
-      Object.values(config.verticalPanels).forEach((panel: any) => {
-        if (panel?.texture?.src) {
-          textures.add(panel.texture.src);
+      Object.values(config.verticalPanels).forEach(
+        (panel: VerticalPanelData) => {
+          if (panel?.texture?.src) {
+            textures.add(panel.texture.src);
+          }
         }
-      });
+      );
     }
 
     // Lấy texture từ các facade panels
     if (config.facadePanels) {
-      Object.values(config.facadePanels).forEach((facadePanel: any) => {
+      Object.values(config.facadePanels).forEach((facadePanel: FacadeData) => {
         if (facadePanel?.texture?.src) {
           textures.add(facadePanel.texture.src);
         }
@@ -56,7 +58,7 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
 
     // Lấy texture từ các backboard panels
     if (config.backPanels) {
-      Object.values(config.backPanels).forEach((backPanel: any) => {
+      Object.values(config.backPanels).forEach((backPanel: BackPanelsData) => {
         if (backPanel?.texture?.src) {
           textures.add(backPanel.texture.src);
         }
@@ -88,7 +90,7 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
     }
 
     let count = 0;
-    let details: string[] = [];
+    const details: string[] = [];
 
     // Kiểm tra texture mặc định
     if (config.texture.src === textureSrc) {
@@ -98,7 +100,7 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
     // Đếm shelves
     if (config.shelves) {
       const shelfCount = Object.values(config.shelves).filter(
-        (shelf: any) => shelf?.texture?.src === textureSrc
+        (shelf: ShelfData) => shelf?.texture?.src === textureSrc
       ).length;
       if (shelfCount > 0) {
         count += shelfCount;
@@ -109,7 +111,7 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
     // Đếm vertical panels
     if (config.verticalPanels) {
       const panelCount = Object.values(config.verticalPanels).filter(
-        (panel: any) => panel?.texture?.src === textureSrc
+        (panel: VerticalPanelData) => panel?.texture?.src === textureSrc
       ).length;
       if (panelCount > 0) {
         count += panelCount;
@@ -120,7 +122,7 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
     // Đếm facade panels
     if (config.facadePanels) {
       const facadeCount = Object.values(config.facadePanels).filter(
-        (facade: any) => facade?.texture?.src === textureSrc
+        (facade: FacadeData) => facade?.texture?.src === textureSrc
       ).length;
       if (facadeCount > 0) {
         count += facadeCount;
@@ -131,7 +133,7 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
     // Đếm backboard panels
     if (config.backPanels) {
       const backCount = Object.values(config.backPanels).filter(
-        (back: any) => back?.texture?.src === textureSrc
+        (back: BackPanelsData) => back?.texture?.src === textureSrc
       ).length;
       if (backCount > 0) {
         count += backCount;
@@ -250,11 +252,54 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
           list: config.listTextures,
           current: config.texture,
           updateFn: (textureName: string, textureSrc: string) => {
-            // Cập nhật texture cho toàn bộ kệ
+            // Cập nhật texture mặc định
             updateConfig("texture", {
               name: textureName,
               src: textureSrc,
             });
+
+            // Xóa texture của các thành phần để chúng sử dụng texture mặc định
+            if (config.shelves) {
+              const updatedShelves = { ...config.shelves };
+              Object.keys(updatedShelves).forEach((key) => {
+                const { texture, ...rest } = updatedShelves[key];
+                updatedShelves[key] = rest;
+              });
+              updateConfig("shelves", updatedShelves);
+            }
+
+            if (config.verticalPanels) {
+              const updatedPanels = { ...config.verticalPanels };
+              Object.keys(updatedPanels).forEach((key) => {
+                const { texture, ...rest } = updatedPanels[key];
+                updatedPanels[key] = rest;
+              });
+              updateConfig("verticalPanels", updatedPanels);
+            }
+
+            if (config.facadePanels) {
+              const updatedFacadePanels = { ...config.facadePanels };
+              Object.keys(updatedFacadePanels).forEach((key) => {
+                const { texture, ...rest } = updatedFacadePanels[key];
+                updatedFacadePanels[key] = rest;
+              });
+              updateConfig("facadePanels", updatedFacadePanels);
+            }
+
+            if (config.backPanels) {
+              const updatedBackPanels = { ...config.backPanels };
+              Object.keys(updatedBackPanels).forEach((key) => {
+                const { texture, ...rest } = updatedBackPanels[key];
+                updatedBackPanels[key] = rest;
+              });
+              updateConfig("backPanels", updatedBackPanels);
+            }
+
+            // Xóa texture của feet
+            if (config.editFeet) {
+              const { texture, ...rest } = config.editFeet;
+              updateConfig("editFeet", rest);
+            }
           },
         };
       case "tablette":

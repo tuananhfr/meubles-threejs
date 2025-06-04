@@ -1,16 +1,6 @@
 import React, { useMemo } from "react";
 import { Text } from "@react-three/drei";
 
-interface TextureModeComponentProps {
-  shelfPositions: any[];
-  selectedShelves: string[];
-  hoveredShelf: string | null;
-  depth: number;
-  handleShelfClick: (shelfInfo: any) => void;
-  hasResetRef: React.RefObject<boolean>;
-  isStandardOrReinforcedShelf: (shelfId: string) => boolean;
-}
-
 const TextureModeComponent: React.FC<TextureModeComponentProps> = ({
   shelfPositions,
   selectedShelves,
@@ -46,9 +36,9 @@ const TextureModeComponent: React.FC<TextureModeComponentProps> = ({
         }
 
         // Xác định style cho icon
-        let iconText = isSelected ? "✓" : "+";
-        let iconColor = "#4CAF50"; // Màu xanh lá
-        let iconBackground = isHovered && !isSelected ? "#E8F5E8" : "#C8E6C9"; // Nền xanh lá nhạt
+        const iconText = isSelected ? "✓" : "+";
+        const iconColor = "#4CAF50"; // Màu xanh lá
+        const iconBackground = isHovered && !isSelected ? "#E8F5E8" : "#C8E6C9"; // Nền xanh lá nhạt
 
         return (
           <React.Fragment key={`texture-shelf-${shelf.id}`}>

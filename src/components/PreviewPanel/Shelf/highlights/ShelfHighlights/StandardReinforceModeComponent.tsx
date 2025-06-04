@@ -72,7 +72,7 @@ const StandardReinforceModeComponent: React.FC<
         const isHovered = hoveredShelf === shelf.id;
 
         // Style cho icon dựa vào chế độ - luôn hiển thị
-        let iconText = isSelected ? "✓" : shelf.isVirtual ? "*" : "+";
+        const iconText = isSelected ? "✓" : shelf.isVirtual ? "*" : "+";
         let iconColor;
         let iconBackground;
 

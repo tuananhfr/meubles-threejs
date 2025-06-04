@@ -26,7 +26,8 @@ const ConfigPanel: React.FC = () => {
   // Reset activeView to "Étagère entière" when any editor menu opens
   React.useEffect(() => {
     if (isAnyEditorMenuOpen && config.activeView !== "Étagère entière") {
-      const updates: any = {
+      const updates: ConfigState = {
+        ...config,
         activeView: "Étagère entière",
       };
 
@@ -68,7 +69,7 @@ const ConfigPanel: React.FC = () => {
 
       batchUpdate(updates);
     }
-  }, [isAnyEditorMenuOpen, config.activeView, batchUpdate]);
+  }, [isAnyEditorMenuOpen, config.activeView, batchUpdate, config]);
 
   // Logic để hiển thị menu chính
   const isMainMenuOpen = !isAnyEditorMenuOpen;

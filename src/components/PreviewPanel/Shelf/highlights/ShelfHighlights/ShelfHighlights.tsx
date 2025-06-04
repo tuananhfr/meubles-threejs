@@ -17,7 +17,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
   const { config, updateConfig } = useConfig();
   const [hoveredShelf, setHoveredShelf] = useState<string | null>(null);
   const [selectedShelves, setSelectedShelves] = useState<string[]>([]);
-  const [shelfPositions, setShelfPositions] = useState<any[]>([]);
+  const [shelfPositions, setShelfPositions] = useState<ShelfPosition[]>([]);
 
   const hasResetRef = useRef(false);
 
@@ -239,7 +239,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
 
   // Hàm tạo vị trí highlight và icon cho từng kệ ngang (thực và ảo)
   const calculateShelfPositions = () => {
-    const positions: any[] = [];
+    const positions: ShelfPosition[] = [];
 
     // Duyệt qua từng cột
     for (let columnIndex = 0; columnIndex < columns; columnIndex++) {
@@ -266,6 +266,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
         column: columnIndex,
         x: centerX,
         y: shelfBottomY + thickness / 2,
+        z: 0,
         width: colWidth,
         height: thickness,
         type: "bottom",
@@ -289,6 +290,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
         column: columnIndex,
         x: centerX,
         y: shelfBottomY + colHeight - thickness / 2,
+        z: 0,
         width: colWidth,
         height: thickness,
         type: "top",
@@ -318,6 +320,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
             column: columnIndex,
             x: centerX,
             y: rowY,
+            z: 0,
             width: colWidth,
             height: thickness,
             type: "middle",
@@ -363,6 +366,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
           column: columnIndex,
           x: centerX,
           y: virtualShelfY,
+          z: 0,
           width: colWidth,
           height: thickness,
           type: "virtual",
@@ -409,6 +413,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
                 column: col,
                 x: centerX,
                 y: rowY,
+                z: 0,
                 width: colWidth,
                 height: thickness,
                 type: "converted",
@@ -491,7 +496,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
   ]);
 
   // Xử lý khi nhấp vào kệ - GIỮ NGUYÊN LOGIC CŨ
-  const handleShelfClick = (shelfInfo: any) => {
+  const handleShelfClick = (shelfInfo: ShelfPosition) => {
     const shelfId = shelfInfo.id;
 
     setSelectedShelves((prevSelected) => {
