@@ -6,7 +6,9 @@ import { useConfig } from "../../../context/ConfigContext";
 const VerticalPanelsHighlights: React.FC = () => {
   const { config, updateConfig } = useConfig();
   const [hoveredPanel, setHoveredPanel] = useState<string | null>(null);
-  const [selectedPanels, setSelectedPanels] = useState<string[]>([]);
+  const [panelStates, setPanelStates] = useState<
+    Record<string, "plus" | "check">
+  >({}); // Track trạng thái icon của từng panel
 
   // Hàm tạo vị trí highlight cho từng vertical panel
   const getPanelPositions = () => {
@@ -42,25 +44,21 @@ const VerticalPanelsHighlights: React.FC = () => {
 
   // Xử lý khi nhấp vào panel
   const handlePanelClick = (panelKey: string) => {
-    setSelectedPanels((prevSelected) => {
-      let newSelected;
-      if (prevSelected.includes(panelKey)) {
-        // Bỏ chọn panel
-        newSelected = prevSelected.filter((key) => key !== panelKey);
-      } else {
-        // Thêm panel vào danh sách chọn
-        newSelected = [...prevSelected, panelKey];
-      }
+    const currentState = panelStates[panelKey] || "plus"; // Default là 'plus' nếu chưa có state
 
-      // Cập nhật config
+    // Toggle giữa 'plus' và 'check'
+    const newState = currentState === "plus" ? "check" : "plus";
+    setPanelStates((prev) => ({ ...prev, [panelKey]: newState }));
+
+    // Cập nhật selectedPanels trong config để track panels đã thay đổi
+    const updatedSelectedPanels =
+      config.editVerticalPanels.selectedPanels || [];
+    if (!updatedSelectedPanels.includes(panelKey)) {
       updateConfig("editVerticalPanels", {
         ...config.editVerticalPanels,
-        isOpenEditTexture: newSelected.length > 0,
-        selectedPanels: newSelected,
+        selectedPanels: [...updatedSelectedPanels, panelKey],
       });
-
-      return newSelected;
-    });
+    }
   };
 
   // Xử lý sự kiện hover
@@ -102,10 +100,10 @@ const VerticalPanelsHighlights: React.FC = () => {
     document.body.style.cursor = "auto";
   };
 
-  // Reset selected panels khi menu đóng
+  // Reset panel states khi menu đóng
   useEffect(() => {
     if (!config.editVerticalPanels.isOpenEditTexture) {
-      setSelectedPanels([]);
+      setPanelStates({});
       setHoveredPanel(null);
       document.body.style.cursor = "auto";
     }
@@ -122,51 +120,57 @@ const VerticalPanelsHighlights: React.FC = () => {
       onPointerLeave={handlePointerLeave}
     >
       {/* Highlight cho mỗi vertical panel */}
-      {panelPositions.map((panel) => (
-        <mesh
-          key={`panel-highlight-${panel.key}`}
-          position={[panel.x, panel.y, panel.z]}
-          onClick={(e) => {
-            handlePanelClick(panel.key);
-            e.stopPropagation();
-          }}
-        >
-          <boxGeometry args={[panel.width, panel.height, panel.depth]} />
-          <meshBasicMaterial
-            color={selectedPanels.includes(panel.key) ? "#d4f5d4" : "#e6f7f9"}
-            transparent
-            opacity={
-              hoveredPanel === panel.key || selectedPanels.includes(panel.key)
-                ? 0.5
-                : 0
-            }
-            depthWrite={false}
-            depthTest={false}
-          />
-        </mesh>
-      ))}
+      {panelPositions.map((panel) => {
+        const panelState = panelStates[panel.key] || "plus"; // Default state là 'plus'
 
-      {/* Biểu tượng "+" (Texture) hoặc "✓" */}
-      {panelPositions.map((panel) => (
-        <group
-          key={`texture-icon-${panel.key}`}
-          position={[panel.x, panel.y, panel.z + panel.depth / 2 + 0.01]}
-        >
-          <mesh>
-            <circleGeometry args={[0.05, 32]} />
-            <meshBasicMaterial color="white" />
-          </mesh>
-          <Text
-            position={[0, 0, 0.01]}
-            color={selectedPanels.includes(panel.key) ? "#4CAF50" : "#17a2b8"}
-            fontSize={0.06}
-            anchorX="center"
-            anchorY="middle"
+        return (
+          <mesh
+            key={`panel-highlight-${panel.key}`}
+            position={[panel.x, panel.y, panel.z]}
+            onClick={(e) => {
+              handlePanelClick(panel.key);
+              e.stopPropagation();
+            }}
           >
-            {selectedPanels.includes(panel.key) ? "✓" : "+"}
-          </Text>
-        </group>
-      ))}
+            <boxGeometry args={[panel.width, panel.height, panel.depth]} />
+            <meshBasicMaterial
+              color={panelState === "check" ? "#d4f5d4" : "#e6f7f9"}
+              transparent
+              opacity={
+                hoveredPanel === panel.key ? 0.5 : 0.3 // Luôn hiện highlight khi menu mở
+              }
+              depthWrite={false}
+              depthTest={false}
+            />
+          </mesh>
+        );
+      })}
+
+      {/* Biểu tượng "+" hoặc "✓" - hiện cho tất cả panels khi menu mở */}
+      {panelPositions.map((panel) => {
+        const panelState = panelStates[panel.key] || "plus"; // Default state là 'plus'
+
+        return (
+          <group
+            key={`texture-icon-${panel.key}`}
+            position={[panel.x, panel.y, panel.z + panel.depth / 2 + 0.01]}
+          >
+            <mesh>
+              <circleGeometry args={[0.05, 32]} />
+              <meshBasicMaterial color="white" />
+            </mesh>
+            <Text
+              position={[0, 0, 0.01]}
+              color={panelState === "check" ? "#4CAF50" : "#17a2b8"}
+              fontSize={0.06}
+              anchorX="center"
+              anchorY="middle"
+            >
+              {panelState === "check" ? "✓" : "+"}
+            </Text>
+          </group>
+        );
+      })}
     </group>
   );
 };
