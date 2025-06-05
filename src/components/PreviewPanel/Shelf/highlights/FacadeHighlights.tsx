@@ -84,19 +84,19 @@ const FacadeHighlights: React.FC = () => {
       const shelfSpacing = cellHeight + thickness;
       const numberOfShelves = Math.max(
         2,
-        Math.floor((colHeight - 2 * thickness) / shelfSpacing) + 1
+        Math.round((colHeight - thickness) / shelfSpacing) + 1
       );
 
       // Tạo danh sách tất cả các vị trí hàng (bao gồm cả kệ thật và kệ ảo)
       const allRows: number[] = [];
 
       // Thêm kệ thật
-      for (let row = 0; row <= numberOfShelves; row++) {
+      for (let row = 0; row <= numberOfShelves - 1; row++) {
         allRows.push(row);
       }
 
       // Thêm kệ ảo (nằm giữa các kệ thật)
-      for (let row = 0; row < numberOfShelves; row++) {
+      for (let row = 0; row < numberOfShelves - 1; row++) {
         allRows.push(row + 0.5);
       }
 
