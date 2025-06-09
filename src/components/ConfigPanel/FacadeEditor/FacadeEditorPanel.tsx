@@ -333,7 +333,7 @@ const FacadeEditorPanel: React.FC = () => {
         // Nếu là tiroir_36, xóa các shelf ở giữa liên quan
         updatedShelves = handleRemoveShelvesForTiroir36(facade, updatedShelves);
 
-        // THÊM MỚI: Nhưng vẫn thêm shelf top và bottom cho tiroir_36
+        // Nhưng vẫn thêm shelf top và bottom cho tiroir_36
         updatedShelves = handleAddTopBottomShelvesForTiroir36(
           facade,
           updatedShelves

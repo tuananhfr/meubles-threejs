@@ -28,6 +28,30 @@ const DuplicateColumnComponent: React.FC = () => {
       newColumnWidths[colIndex + 1] = sourceWidth;
       newColumnHeights[colIndex + 1] = sourceHeight;
 
+      // Tính toán width mới **
+      const newColumns = config.columns + 1;
+
+      // Hàm tính width tổng (giống như trong ConfigProvider)
+      const calculateTotalWidth = (
+        columnWidths: ColumnDimensions,
+        columns: number,
+        thickness: number
+      ): number => {
+        let totalColumnWidth = 0;
+        for (let i = 0; i < columns; i++) {
+          totalColumnWidth += columnWidths[i] || 0;
+        }
+        const totalThickness = thickness * (columns + 1);
+        return totalColumnWidth + totalThickness;
+      };
+
+      // Tính width mới
+      const newWidth = calculateTotalWidth(
+        newColumnWidths,
+        newColumns,
+        config.thickness
+      );
+
       // 5. Xử lý backpanels
       const newBackPanels = { ...config.backPanels };
       const existingBackPanels = config.backPanels || {};
@@ -162,9 +186,10 @@ const DuplicateColumnComponent: React.FC = () => {
 
       // 7. Cập nhật tất cả các trạng thái cùng một lúc để tránh render nhiều lần
       batchUpdate({
+        width: newWidth,
         columnWidths: newColumnWidths,
         columnHeights: newColumnHeights,
-        columns: config.columns + 1,
+        columns: newColumns,
         backPanels: updatedBackPanels,
         shelves: updatedShelves,
         editColumns: {

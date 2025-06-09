@@ -24,6 +24,30 @@ const DeleteColumnComponent: React.FC = () => {
       delete newColumnWidths[config.columns - 1];
       delete newColumnHeights[config.columns - 1];
 
+      // Tính toán width mới
+      const newColumns = config.columns - 1;
+
+      // Hàm tính width tổng (giống như trong ConfigProvider)
+      const calculateTotalWidth = (
+        columnWidths: ColumnDimensions,
+        columns: number,
+        thickness: number
+      ): number => {
+        let totalColumnWidth = 0;
+        for (let i = 0; i < columns; i++) {
+          totalColumnWidth += columnWidths[i] || 0;
+        }
+        const totalThickness = thickness * (columns + 1);
+        return totalColumnWidth + totalThickness;
+      };
+
+      // Tính width mới
+      const newWidth = calculateTotalWidth(
+        newColumnWidths,
+        newColumns,
+        config.thickness
+      );
+
       // 4. Xử lý backpanels
       const newBackPanels = { ...config.backPanels };
       const existingBackPanels = config.backPanels || {};
@@ -133,9 +157,10 @@ const DeleteColumnComponent: React.FC = () => {
 
       // 6. Cập nhật tất cả các trạng thái cùng một lúc
       batchUpdate({
+        width: newWidth,
         columnWidths: newColumnWidths,
         columnHeights: newColumnHeights,
-        columns: config.columns - 1,
+        columns: newColumns,
         backPanels: updatedBackPanels,
         shelves: updatedShelves,
         editColumns: {

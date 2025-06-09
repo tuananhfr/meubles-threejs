@@ -190,13 +190,31 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
       selectedBackboard: [],
     },
     editVerticalPanels: {
-      // ADDED: Edit state cho vertical panels
       isOpenEditTexture: false,
       selectedPanels: [],
     },
     cellHeight: initialcellHeight,
     cellWidth: initialcellWidth,
   });
+
+  // Hàm tính lại width tổng dựa trên columnWidths và số cột
+  const calculateTotalWidth = (
+    columnWidths: ColumnDimensions,
+    columns: number,
+    thickness: number
+  ): number => {
+    // Tính tổng width của tất cả các cột
+    let totalColumnWidth = 0;
+    for (let i = 0; i < columns; i++) {
+      totalColumnWidth += columnWidths[i] || 0;
+    }
+
+    // Tổng thickness = thickness * (số cột + 1)
+    const totalThickness = thickness * (columns + 1);
+
+    // Width tổng = tổng width các cột + tổng thickness
+    return totalColumnWidth + totalThickness;
+  };
 
   // Thêm một hàm mới để cập nhật nhiều thuộc tính cùng lúc
   const batchUpdate = (updates: Partial<ConfigState>) => {
@@ -207,7 +225,6 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
   };
 
   // Hàm cập nhật cấu hình
-
   const updateConfig = <K extends keyof ConfigState>(
     key: K,
     value: ConfigState[K]
@@ -220,19 +237,43 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
         // Tính toán mức chênh lệch chiều cao
         const heightDifference = newHeight - prevConfig.height;
 
+        // Tính chiều cao tối thiểu cho 1 row (cellHeight + 2*thickness)
+        const minColumnHeight =
+          prevConfig.cellHeight + 2 * prevConfig.thickness;
+
         // Tạo đối tượng columnHeights mới
         const updatedColumnHeights: ColumnDimensions = {};
 
         // Cập nhật chiều cao cho tất cả các cột
         for (let i = 0; i < prevConfig.columns; i++) {
-          // Tăng chiều cao của mỗi cột lên cùng một giá trị tuyệt đối
-          updatedColumnHeights[i] =
+          // Tính chiều cao mới cho cột
+          const newColumnHeight =
             prevConfig.columnHeights[i] + heightDifference;
+
+          // Đảm bảo chiều cao không thấp hơn mức tối thiểu
+          updatedColumnHeights[i] = Math.max(newColumnHeight, minColumnHeight);
+        }
+
+        // Kiểm tra xem có cột nào bị giới hạn bởi minHeight không
+        const hasConstrainedColumns = Object.values(updatedColumnHeights).some(
+          (height, index) =>
+            height === minColumnHeight &&
+            prevConfig.columnHeights[index] + heightDifference < minColumnHeight
+        );
+
+        // Nếu có cột bị giới hạn, tính lại height tổng dựa trên cột cao nhất thực tế
+        let finalTotalHeight = newHeight;
+        if (hasConstrainedColumns) {
+          const maxActualColumnHeight = Math.max(
+            ...Object.values(updatedColumnHeights)
+          );
+          finalTotalHeight =
+            maxActualColumnHeight + (prevConfig.editFeet?.heightFeet || 0);
         }
 
         return {
           ...prevConfig,
-          [key]: value,
+          [key]: finalTotalHeight, // Sử dụng height đã được điều chỉnh
           columnHeights: updatedColumnHeights,
         };
       });
@@ -268,12 +309,22 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
       const updatedColumnHeights = value as ColumnDimensions;
 
       setConfig((prevConfig) => {
-        // Tính toán chiều cao mới (lấy giá trị lớn nhất trong các cột)
-        let maxHeight = 0;
+        // Tính chiều cao tối thiểu cho 1 row
+        const minColumnHeight =
+          prevConfig.cellHeight + 2 * prevConfig.thickness;
+
+        // Áp dụng giới hạn tối thiểu cho tất cả các cột
+        const constrainedColumnHeights: ColumnDimensions = {};
         for (let i = 0; i < prevConfig.columns; i++) {
           const columnHeight =
             updatedColumnHeights[i] || prevConfig.columnHeights[i];
-          maxHeight = Math.max(maxHeight, columnHeight);
+          constrainedColumnHeights[i] = Math.max(columnHeight, minColumnHeight);
+        }
+
+        // Tính toán chiều cao mới (lấy giá trị lớn nhất trong các cột)
+        let maxHeight = 0;
+        for (let i = 0; i < prevConfig.columns; i++) {
+          maxHeight = Math.max(maxHeight, constrainedColumnHeights[i]);
         }
 
         // Thêm chiều cao chân vào tổng chiều cao
@@ -281,8 +332,112 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
 
         return {
           ...prevConfig,
-          [key]: updatedColumnHeights,
-          height: totalHeight, // Tổng chiều cao bao gồm cả chân kệ
+          [key]: constrainedColumnHeights,
+          height: totalHeight,
+        };
+      });
+    } else if (key === "columnWidths") {
+      //  Khi cập nhật columnWidths, tự động tính lại width tổng
+      const updatedColumnWidths = value as ColumnDimensions;
+
+      setConfig((prevConfig) => {
+        // Tính lại width tổng dựa trên columnWidths mới
+        const newTotalWidth = calculateTotalWidth(
+          updatedColumnWidths,
+          prevConfig.columns,
+          prevConfig.thickness
+        );
+
+        return {
+          ...prevConfig,
+          [key]: updatedColumnWidths,
+          width: newTotalWidth, // Tự động cập nhật width tổng
+        };
+      });
+    } else if (key === "columns") {
+      // Khi cập nhật số cột, cũng cần tính lại width
+      const newColumns = value as number;
+
+      setConfig((prevConfig) => {
+        // Tính lại width tổng với số cột mới
+        const newTotalWidth = calculateTotalWidth(
+          prevConfig.columnWidths,
+          newColumns,
+          prevConfig.thickness
+        );
+
+        return {
+          ...prevConfig,
+          [key]: newColumns,
+          width: newTotalWidth, // Tự động cập nhật width tổng
+        };
+      });
+    } else if (key === "width") {
+      // Khi cập nhật width trực tiếp, tính số cột mới
+      const newWidth = value as number;
+
+      setConfig((prevConfig) => {
+        // Tính width hiện tại từ columnWidths
+        const currentCalculatedWidth = calculateTotalWidth(
+          prevConfig.columnWidths,
+          prevConfig.columns,
+          prevConfig.thickness
+        );
+
+        // Tính width chênh lệch
+        const widthDifference = newWidth - currentCalculatedWidth;
+
+        // Nếu không có chênh lệch, chỉ cập nhật width
+        if (Math.abs(widthDifference) < 1) {
+          return {
+            ...prevConfig,
+            [key]: newWidth,
+          };
+        }
+
+        // Tính số cột cần thêm/bớt
+        const columnSpacing = prevConfig.cellWidth + prevConfig.thickness;
+        const columnsToAdd = Math.round(widthDifference / columnSpacing);
+
+        // Tính số cột mới
+        const newColumns = Math.max(1, prevConfig.columns + columnsToAdd);
+
+        // Cập nhật columnWidths cho số cột mới
+        const updatedColumnWidths: ColumnDimensions = {
+          ...prevConfig.columnWidths,
+        };
+        const updatedColumnHeights: ColumnDimensions = {
+          ...prevConfig.columnHeights,
+        };
+
+        if (columnsToAdd > 0) {
+          // Thêm các cột mới với cellWidth
+          for (let i = prevConfig.columns; i < newColumns; i++) {
+            updatedColumnWidths[i] = prevConfig.cellWidth;
+            updatedColumnHeights[i] =
+              prevConfig.columnHeights[0] || prevConfig.height; // Dùng chiều cao của cột đầu tiên hoặc chiều cao tổng
+          }
+        } else if (columnsToAdd < 0) {
+          // BỚT CỘT: Xóa các cột cuối
+          for (let i = newColumns; i < prevConfig.columns; i++) {
+            delete updatedColumnWidths[i];
+            delete updatedColumnHeights[i];
+          }
+        }
+
+        // Tính lại width chính xác từ columnWidths mới
+        const finalWidth = calculateTotalWidth(
+          updatedColumnWidths,
+          newColumns,
+          prevConfig.thickness
+        );
+
+        return {
+          ...prevConfig,
+          width: finalWidth,
+          columns: newColumns,
+          columnWidths: updatedColumnWidths,
+          columnHeights: updatedColumnHeights,
         };
       });
     } else {
@@ -293,17 +448,9 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
       }));
     }
   };
-  // Effect để tính số cột, hàng dựa vào chiều rộng, cao
-  // Lưu ý: Chúng ta chỉ muốn kích hoạt effect này khi width, height hoặc thickness thay đổi
-  // KHÔNG kích hoạt khi columns hoặc rows thay đổi do việc nhân bản cột
 
+  // Effect để tính số hàng dựa vào chiều cao
   useEffect(() => {
-    // Cập nhật số cột dựa trên chiều rộng
-    const newColumns = Math.max(
-      1,
-      Math.round((config.width - config.thickness * 2) / 38)
-    );
-
     // Tính chiều cao hiệu dụng (trừ đi chiều cao chân nếu có)
     const effectiveHeight = config.editFeet?.heightFeet
       ? config.height - config.editFeet.heightFeet
@@ -315,52 +462,18 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
       Math.round((effectiveHeight - config.thickness) / 38)
     );
 
-    // Kiểm tra xem có cần cập nhật không
-    if (config.columns !== newColumns || config.rows !== newRows) {
-      // Cập nhật số cột và số hàng
-      setConfig((prev) => {
-        // Cũng cần cập nhật columnHeights và columnWidths khi số cột thay đổi
-        const updatedColumnHeights: ColumnDimensions = {};
-        const updatedColumnWidths: ColumnDimensions = {};
-
-        // Tính chiều rộng mới cho mỗi cột
-        const totalThickness = prev.thickness * (newColumns + 1);
-        const newColumnWidth = Math.floor(
-          (prev.width - totalThickness) / newColumns
-        );
-
-        // Chiều cao hiệu dụng (không tính phần chân)
-        const effectiveHeight = prev.editFeet?.heightFeet
-          ? prev.height - prev.editFeet.heightFeet
-          : prev.height;
-
-        // Khởi tạo giá trị cho từng cột mới
-        for (let i = 0; i < newColumns; i++) {
-          // Sử dụng giá trị cũ nếu có, nếu không thì dùng giá trị hiệu dụng
-          const oldHeight =
-            i < prev.columns && prev.columnHeights[i]
-              ? prev.columnHeights[i]
-              : effectiveHeight;
-
-          // Nếu giá trị cũ đã tính vào chiều cao chân, giữ nguyên; ngược lại, điều chỉnh
-          updatedColumnHeights[i] = oldHeight;
-          updatedColumnWidths[i] = newColumnWidth; // Luôn cập nhật chiều rộng để phù hợp
-        }
-
-        return {
-          ...prev,
-          columns: newColumns,
-          rows: newRows,
-          columnHeights: updatedColumnHeights,
-          columnWidths: updatedColumnWidths,
-        };
-      });
+    // Chỉ cập nhật rows nếu khác với giá trị hiện tại
+    if (config.rows !== newRows) {
+      setConfig((prev) => ({
+        ...prev,
+        rows: newRows,
+      }));
     }
   }, [
-    config.width,
     config.height,
     config.thickness,
-    config.editFeet?.heightFeet, // Thêm heightFeet vào dependencies
+    config.editFeet?.heightFeet,
+    config.rows, // Thêm config.rows để tránh infinite loop
   ]);
 
   // useEffect để tự động cập nhật shelves khi columnHeights thay đổi
@@ -491,7 +604,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     config.thickness,
   ]);
 
-  // useEffect để xử lý thay đổi số cột (width)
+  // useEffect để xử lý thay đổi số cột (khi columns thay đổi từ việc cập nhật width)
   useEffect(() => {
     // Chỉ tiếp tục nếu shelves đã được khởi tạo
     if (!config.shelves) return;
@@ -610,6 +723,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     config.cellHeight,
     config.thickness,
   ]);
+
   return (
     <ConfigContext.Provider value={{ config, updateConfig, batchUpdate }}>
       {children}

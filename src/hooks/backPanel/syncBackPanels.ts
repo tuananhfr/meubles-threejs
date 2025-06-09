@@ -72,7 +72,6 @@ export const syncBackPanelsWithShelves = (
         const backPanelZ = -depth / 2 + thickness / 2 + 0.0001;
 
         // Tạo key cho panel: sử dụng row của shelf hiện tại
-        // Quan trọng: Giữ nguyên giá trị row không làm tròn vì có thể là số thập phân
         const panelKey = `back-panel-${currentShelf.row}-${column}`;
 
         // Giữ lại trạng thái isRemoved nếu panel đã tồn tại

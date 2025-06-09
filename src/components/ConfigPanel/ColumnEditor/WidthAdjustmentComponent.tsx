@@ -73,14 +73,14 @@ const WidthAdjustmentComponent: React.FC = () => {
       newColumnWidths[columnInfo.index] = numericWidth;
 
       // Cập nhật state và đóng menu chỉnh sửa
-      updateConfig("columnWidths", newColumnWidths);
+      // REMOVED: updateConfig("width", config.width + 12); - không cần cập nhật width tổng nữa
+      updateConfig("columnWidths", newColumnWidths); // Width tổng sẽ được tự động tính trong Provider
       updateConfig("editColumns", {
         ...config.editColumns,
         isOpenOption: true,
         isOpenEditWidth: false,
         selectedColumnInfo: updatedColumnInfo,
       });
-      updateConfig("width", config.width + 12);
 
       // Reset giá trị ban đầu
       originalWidth.current = null;
@@ -92,7 +92,7 @@ const WidthAdjustmentComponent: React.FC = () => {
       // Khôi phục giá trị ban đầu
       const newColumnWidths = { ...config.columnWidths };
       newColumnWidths[columnInfo.index] = originalWidth.current;
-      updateConfig("columnWidths", newColumnWidths);
+      updateConfig("columnWidths", newColumnWidths); // Width tổng sẽ được tự động tính trong Provider
 
       // Cập nhật columnInfo với chiều rộng ban đầu
       const updatedColumnInfo = {

@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import * as THREE from "three";
 import { ThreeEvent, useFrame } from "@react-three/fiber";
 import { useConfig } from "../../context/ConfigContext";
+import { useFacadePositionSync } from "../../../hooks/useFacadePositionSync";
 
 interface FacadePanelsProps {
   depth: number;
@@ -34,33 +35,7 @@ const FacadePanels: React.FC<FacadePanelsProps> = ({
   const doorGroupRefs = useRef<Record<string, THREE.Group>>({});
   const doorAnimationRef = useRef<Record<string, DoorAnimationData>>({});
 
-  // Effect để cập nhật vị trí của các facade panel khi vị trí shelf thay đổi
-  useEffect(() => {
-    if (!config.facadePanels) return;
-
-    // Cập nhật vị trí của các facade panel dựa trên vị trí mới của shelf
-    Object.entries(config.facadePanels).forEach(([key, panel]) => {
-      const drawerGroup = drawerGroupRefs.current[key];
-      const doorGroup = doorGroupRefs.current[key];
-
-      if (drawerGroup) {
-        drawerGroup.position.set(
-          panel.position[0],
-          panel.position[1],
-          panel.position[2] || -depth / 2 + thickness / 2
-        );
-      }
-
-      if (doorGroup) {
-        const isLeftHinged = key.includes("Left");
-        const hingeX = isLeftHinged
-          ? panel.position[0] + panel.dimensions[0] / 2
-          : panel.position[0] - panel.dimensions[0] / 2;
-
-        doorGroup.position.set(hingeX, panel.position[1], panel.position[2]);
-      }
-    });
-  }, [config.facadePanels, depth, thickness]);
+  useFacadePositionSync();
 
   // Effect để load texture riêng cho từng facade panel
   useEffect(() => {

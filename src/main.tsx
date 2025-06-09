@@ -33,7 +33,6 @@ function initAllShelf3DBlocks(): void {
   ) as NodeListOf<HTMLElement>;
 
   containers.forEach((container) => {
-    console.log(`Initializing Shelf3D in container: ${container.id}`);
     initShelf3DBlock(container);
   });
 
@@ -41,7 +40,6 @@ function initAllShelf3DBlocks(): void {
   if (containers.length === 0) {
     const devContainer = document.getElementById("root") as HTMLElement;
     if (devContainer) {
-      console.log("Development mode: using #root container");
       initShelf3DBlock(devContainer);
     }
   }
