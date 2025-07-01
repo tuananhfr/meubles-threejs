@@ -1,54 +1,133 @@
-# React + TypeScript + Vite
+# Meubles ThreeJS - 3D Shelf Configuration System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern React-based 3D shelf configuration system built with Three.js, allowing users to design and visualize custom shelf systems in real-time.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **3D Real-time Preview**: Interactive 3D visualization using Three.js and React Three Fiber
+- **Responsive Design**: Works seamlessly on both desktop and mobile devices
+- **Shelf Configuration**: Comprehensive shelf customization options including:
+  - Shelf dimensions and positioning
+  - Column and backboard editing
+  - Facade customization
+  - Feet configuration
+- **Price Calculation**: Real-time price updates based on configuration
+- **Measurement Tools**: Built-in ruler and measurement display
+- **Camera Controls**: Zoom, pan, and rotate functionality
+- **Modern UI**: Clean interface built with Bootstrap 5
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Frontend Framework**: React 19 with TypeScript
+- **3D Graphics**: Three.js with React Three Fiber
+- **UI Framework**: Bootstrap 5 with Bootstrap Icons
+- **Build Tool**: Vite
+- **Package Manager**: npm
+- **Development Tools**: ESLint, TypeScript
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/tuananhfr/meubles-threejs
+cd meubles-threejs
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Install dependencies:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+npm install
 ```
+
+3. Start the development server:
+
+```bash
+npm run dev
+```
+
+4. Open your browser and navigate to `http://localhost:5173`
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── ConfigPanel/          # Shelf configuration interface
+│   │   ├── section/          # Configuration sections
+│   │   ├── ShelfEditor/      # Shelf editing components
+│   │   ├── ColumnEditor/     # Column editing components
+│   │   ├── BackboardEditor/  # Backboard editing components
+│   │   ├── FacadeEditor/     # Facade editing components
+│   │   └── FeetEditor/       # Feet editing components
+│   ├── PreviewPanel/         # 3D preview components
+│   │   ├── Shelf/           # Shelf 3D model
+│   │   ├── CanvasControls/  # 3D view controls
+│   │   └── CameraController/ # Camera manipulation
+│   ├── Button/              # Action buttons
+│   └── context/             # React context providers
+├── hooks/                   # Custom React hooks
+├── types/                   # TypeScript type definitions
+├── utils/                   # Utility functions
+├── assets/                  # Static assets
+└── Plugin/                  # Plugin system
+```
+
+## Usage
+
+### Desktop Layout
+
+- **Left Panel**: Configuration options for shelf customization
+- **Right Panel**: 3D preview with interactive controls
+- **Bottom Bar**: Price display and action buttons
+
+### Mobile Layout
+
+- **Top Half**: 3D preview area
+- **Bottom Half**: Configuration panel with scrollable options
+- **Bottom Bar**: Price and action buttons
+
+### 3D Controls
+
+- **Mouse/Touch**: Rotate the view
+- **Pan**: Move the camera around
+- **Ruler Button**: Toggle measurement display
+- **Zoom Controls**: Zoom in/out buttons
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## Configuration
+
+The application uses a context-based state management system for configuration data. All shelf parameters are managed through the `ConfigProvider` context.
+
+## Browser Support
+
+- Chrome (recommended)
+- Firefox
+- Safari
+- Edge
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is private and proprietary.
+
+## Support
+
+For support and questions, please contact the development team.
+
+---
+
+**Note**: This is a private project for internal use. Please ensure you have proper authorization before using or modifying this codebase.
