@@ -4,17 +4,19 @@ import { useConfig } from "../components/context/ConfigContext";
 
 // Định nghĩa giá cho từng loại facade
 const facadePrices: Record<string, number> = {
-  tiroir_17: 25,
-  tiroir_36: 35,
+  tiroir_17: 80,
+  tiroir_36: 100,
   porte_basse_36: 30,
-  porte_basse_55: 40,
-  porte_haut_74: 50,
-  porte_haut_112: 65,
-  porte_haut_150: 80,
-  porte_haut_188: 95,
-  porte_haut_226: 110,
+  porte_basse_55: 50,
+  porte_haut_74: 70,
+  porte_haut_112: 90,
+  porte_haut_150: 110,
+  porte_haut_188: 130,
+  porte_haut_226: 150,
   retire: 0,
 };
+
+const WOOD_PANEL_PRICE_PER_M2 = 100;
 
 // Hàm helper để lấy giá facade từ key
 const getFacadePrice = (facadeKey: string): number => {
@@ -28,32 +30,38 @@ export const usePrice = () => {
 
   // Hàm tính số shelf dọc từ verticalPanels
   const calculateVerticalShelves = () => {
-    const { verticalPanels, cellHeight = 36, thickness = 2 } = config;
-    let totalVerticalShelves = 0;
+    const { verticalPanels, depth } = config;
+    let totalPrice = 0;
 
     if (verticalPanels) {
       Object.values(verticalPanels).forEach((panel) => {
         const panelHeight = panel.dimensions[1];
-        const shelfSpacing = cellHeight + thickness;
-        const shelvesInPanel = Math.max(
-          1,
-          Math.floor((panelHeight - 2 * thickness) / shelfSpacing) + 1
-        );
-        totalVerticalShelves += shelvesInPanel;
+        const panelPrice =
+          ((panelHeight * depth) / 100) * WOOD_PANEL_PRICE_PER_M2; // Số lượng shelf dọc trong panel
+
+        totalPrice += panelPrice;
       });
     }
 
-    return totalVerticalShelves;
+    return totalPrice;
   };
 
   // Hàm tính số shelf ngang từ shelves
   const calculateHorizontalShelves = () => {
-    const { shelves } = config;
+    const { shelves, depth } = config;
     if (!shelves) return 0;
 
-    return Object.values(shelves).filter(
-      (shelf) => !shelf.isRemoved && !shelf.isVirtual
-    ).length;
+    let totalPrice = 0;
+    Object.values(shelves).forEach((shelf) => {
+      if (!shelf.isRemoved && !shelf.isVirtual) {
+        const columnIndex = shelf.column || 0;
+        const cellWidth = config.columnWidths?.[columnIndex] / 100 || 0;
+        const shelfPrice = (depth / 100) * cellWidth * WOOD_PANEL_PRICE_PER_M2;
+        totalPrice += shelfPrice;
+      }
+    });
+
+    return totalPrice;
   };
 
   // Hàm tính số back panels
@@ -65,8 +73,21 @@ export const usePrice = () => {
 
     Object.values(backPanels).forEach((panel) => {
       if (!panel.isRemoved && !panel.permanentlyDeleted) {
+        // 1. Lấy column của panel
+        const columnIndex = panel.column || 0;
+
+        // 2. Lấy width từ columnWidths[columnIndex]
+        const columnWidth = config.columnWidths?.[columnIndex] / 100;
+
+        // 3. Lấy height của panel
         const panelHeight = panel.dimensions[1];
-        const panelPrice = (20 / config.cellHeight) * 100 * panelHeight;
+
+        // 4. Tính diện tích: width × height
+        const panelArea = columnWidth * panelHeight;
+
+        // 5. Tính giá: area × 100/m²
+        const panelPrice = panelArea * WOOD_PANEL_PRICE_PER_M2;
+
         totalPrice += panelPrice;
       }
     });
@@ -99,11 +120,17 @@ export const usePrice = () => {
 
     const feetType = editFeet.feetType || "sans_pieds";
 
+    const designFeetPrice =
+      (config.width / 100 - 0.08) *
+      (config.depth / 100 - 0.1) *
+      2 *
+      WOOD_PANEL_PRICE_PER_M2;
+
     // Giá theo loại chân
     const feetPrices = {
       sans_pieds: 0,
-      design: 30,
-      classic: 40,
+      design: designFeetPrice,
+      classic: 20,
     };
 
     return feetPrices[feetType as keyof typeof feetPrices] || 0;
@@ -111,18 +138,18 @@ export const usePrice = () => {
 
   // Hàm cập nhật componentPrice dựa trên số lượng thành phần
   const updateComponentPrices = () => {
-    const verticalShelvesCount = calculateVerticalShelves();
-    const horizontalShelvesCount = calculateHorizontalShelves();
+    const verticalShelvesPrice = calculateVerticalShelves();
+    const horizontalShelvesPrice = calculateHorizontalShelves();
     const backPanelsPrice = calculateBackPanels();
-    const facadePanelsPrice = calculateFacadePanels(); // Đây giờ là tổng giá, không phải số lượng
+    const facadePanelsPrice = calculateFacadePanels();
     const feetPrice = calculateFeetPrice();
 
     // Tính giá cho từng thành phần
     const newComponentPrice = {
-      priceVerticalShelves: verticalShelvesCount * 20,
-      priceHorizontalShelves: horizontalShelvesCount * 20,
+      priceVerticalShelves: verticalShelvesPrice,
+      priceHorizontalShelves: horizontalShelvesPrice,
       priceBackPanels: backPanelsPrice,
-      priceFacadePanels: facadePanelsPrice, // Đã là tổng giá
+      priceFacadePanels: facadePanelsPrice,
       priceFeet: feetPrice,
     };
 
@@ -213,6 +240,7 @@ export const usePrice = () => {
     config.editFeet,
     config.cellHeight,
     config.thickness,
+    config.columnWidths,
   ]);
 
   // Effect để cập nhật tổng giá khi componentPrice thay đổi

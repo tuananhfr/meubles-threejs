@@ -24,7 +24,7 @@ const DeleteColumnComponent: React.FC = () => {
       delete newColumnWidths[config.columns - 1];
       delete newColumnHeights[config.columns - 1];
 
-      // Tính toán width mới
+      //  Tính toán width mới
       const newColumns = config.columns - 1;
 
       // Hàm tính width tổng (giống như trong ConfigProvider)

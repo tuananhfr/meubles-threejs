@@ -97,6 +97,7 @@ const ShelfModel: React.FC<ShelfModelProps> = ({
           depth={depth}
           shelfBottomY={shelfBottomY}
           texture={texture}
+          thickness={thickness}
         />
       </group>
 

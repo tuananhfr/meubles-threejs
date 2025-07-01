@@ -175,29 +175,29 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
   };
 
   // Hàm kiểm tra kệ đã chuyển từ ảo sang thật
-  const isVirtualShelfConverted = (row: number, column: number) => {
-    // Chỉ xét các hàng không phải số nguyên (0.5, 1.5, etc.)
-    if (row % 1 === 0) return false;
+  // const isVirtualShelfConverted = (row: number, column: number) => {
+  //   // Chỉ xét các hàng không phải số nguyên (0.5, 1.5, etc.)
+  //   if (row % 1 === 0) return false;
 
-    // Tạo key cho kệ thật và kệ ảo
-    const realKey = `${row}-${column}`;
-    const virtualKey = `${row}-${column}-virtual`;
+  //   // Tạo key cho kệ thật và kệ ảo
+  //   const realKey = `${row}-${column}`;
+  //   const virtualKey = `${row}-${column}-virtual`;
 
-    // Kiểm tra trực tiếp trong config.shelves
-    if (!config.shelves) return false;
+  //   // Kiểm tra trực tiếp trong config.shelves
+  //   if (!config.shelves) return false;
 
-    // Kiểm tra xem kệ thật có tồn tại không
-    const realShelf = config.shelves[realKey];
+  //   // Kiểm tra xem kệ thật có tồn tại không
+  //   const realShelf = config.shelves[realKey];
 
-    // Kiểm tra xem kệ ảo có tồn tại không hoặc đã bị xóa
-    const virtualShelfMissing = !config.shelves[virtualKey];
+  //   // Kiểm tra xem kệ ảo có tồn tại không hoặc đã bị xóa
+  //   const virtualShelfMissing = !config.shelves[virtualKey];
 
-    // Một kệ được chuyển từ ảo sang thật khi:
-    // 1. Kệ thật tồn tại (có thể là reinforced hoặc standard)
-    // 2. Kệ ảo không tồn tại hoặc đã bị xóa
-    // 3. Hàng không phải số nguyên (đã kiểm tra ở đầu hàm)
-    return !!realShelf && virtualShelfMissing;
-  };
+  //   // Một kệ được chuyển từ ảo sang thật khi:
+  //   // 1. Kệ thật tồn tại (có thể là reinforced hoặc standard)
+  //   // 2. Kệ ảo không tồn tại hoặc đã bị xóa
+  //   // 3. Hàng không phải số nguyên (đã kiểm tra ở đầu hàm)
+  //   return !!realShelf && virtualShelfMissing;
+  // };
 
   /// Hàm kiểm tra kệ có phải là kệ tiêu chuẩn hoặc kệ tăng cường không
   const isStandardOrReinforcedShelf = (shelfId: string) => {
@@ -241,215 +241,80 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
   const calculateShelfPositions = () => {
     const positions: ShelfPosition[] = [];
 
-    // Duyệt qua từng cột
-    for (let columnIndex = 0; columnIndex < columns; columnIndex++) {
-      // Lấy chiều rộng và chiều cao của cột
-      const colWidth = getColumnWidth(columnIndex);
-      const colHeight = getColumnHeight(columnIndex);
+    // Nếu không có config.shelves, return empty array
+    if (!config.shelves) return positions;
 
-      // Lấy vị trí X của cột
-      const colX = getColumnXPosition(columnIndex);
-      // Tính vị trí x ở giữa cột
+    // Duyệt qua tất cả các shelf trong config.shelves
+    Object.entries(config.shelves).forEach(([shelfId, shelfData]) => {
+      // Bỏ qua shelf đã bị xóa
+      if (shelfData.isRemoved) return;
+
+      // Parse shelfId để lấy thông tin vị trí
+      const parts = shelfId.split("-");
+      const row = parseFloat(parts[0]);
+      const column = parseInt(parts[1]);
+      const isVirtual = shelfId.includes("-virtual");
+
+      // Tính toán vị trí 3D cho shelf này
+      const colWidth = getColumnWidth(column);
+      const colHeight = getColumnHeight(column);
+      const colX = getColumnXPosition(column);
       const centerX = colX + colWidth / 2 + thickness / 2;
 
-      // Khoảng cách giữa các kệ ngang
+      // Tính vị trí Y dựa vào row
       const shelfSpacing = cellHeight + thickness;
+      let shelfY;
 
-      // Xác định số lượng kệ ngang cho cột này
-      const actualRows = getNumberOfShelvesForColumn(columnIndex);
+      if (row === 0) {
+        // Shelf đáy
+        shelfY = shelfBottomY + thickness / 2;
+      } else if (row === getNumberOfShelvesForColumn(column)) {
+        // Shelf đỉnh
+        shelfY = shelfBottomY + colHeight - thickness / 2;
+      } else {
+        // Shelf ở giữa hoặc shelf converted
+        shelfY = shelfBottomY + thickness / 2 + row * shelfSpacing;
+      }
 
-      // Vẽ kệ đáy (luôn có, không thể xóa)
-      const bottomShelfId = `0-${columnIndex}`;
-      positions.push({
-        id: bottomShelfId,
-        row: 0,
-        column: columnIndex,
+      // Xác định type của shelf
+      let type = "middle";
+      if (row === 0) type = "bottom";
+      else if (row === getNumberOfShelvesForColumn(column)) type = "top";
+      else if (isVirtual) type = "virtual";
+      else if (row % 1 !== 0) type = "converted"; // Shelf có row không nguyên (0.5, 1.5...)
+
+      // Tạo ShelfPosition object
+      const shelfPosition: ShelfPosition = {
+        id: shelfId,
+        row: row,
+        column: column,
         x: centerX,
-        y: shelfBottomY + thickness / 2,
+        y: shelfY,
         z: 0,
         width: colWidth,
         height: thickness,
-        type: "bottom",
-        isVirtual: false,
-        totalShelves: actualRows,
-        // Thêm thông tin từ config.shelves nếu có
-        ...(config.shelves && config.shelves[bottomShelfId]
-          ? {
-              isStandard: config.shelves[bottomShelfId].isStandard || false,
-              isReinforced: config.shelves[bottomShelfId].isReinforced || false,
-              isRemoved: config.shelves[bottomShelfId].isRemoved || false,
-            }
-          : {}),
-      });
+        type: type,
+        isVirtual: isVirtual,
+        totalShelves: getNumberOfShelvesForColumn(column),
+        // Thêm thông tin từ shelfData
+        isStandard: shelfData.isStandard || false,
+        isReinforced: shelfData.isReinforced || false,
+        isRemoved: shelfData.isRemoved || false,
+      };
 
-      // Vẽ kệ đỉnh (luôn có, không thể xóa)
-      const topShelfId = `${actualRows}-${columnIndex}`;
-      positions.push({
-        id: topShelfId,
-        row: actualRows,
-        column: columnIndex,
-        x: centerX,
-        y: shelfBottomY + colHeight - thickness / 2,
-        z: 0,
-        width: colWidth,
-        height: thickness,
-        type: "top",
-        isVirtual: false,
-        totalShelves: actualRows,
-        // Thêm thông tin từ config.shelves nếu có
-        ...(config.shelves && config.shelves[topShelfId]
-          ? {
-              isStandard: config.shelves[topShelfId].isStandard || false,
-              isReinforced: config.shelves[topShelfId].isReinforced || false,
-              isRemoved: config.shelves[topShelfId].isRemoved || false,
-            }
-          : {}),
-      });
-
-      // Vẽ kệ ngang ở giữa
-      for (let row = 1; row < actualRows; row++) {
-        // Vị trí Y bắt đầu từ đáy lên
-        const rowY = shelfBottomY + thickness / 2 + row * shelfSpacing;
-
-        // Chỉ vẽ kệ nếu nằm trong phạm vi chiều cao của cột
-        if (rowY < shelfBottomY + colHeight - thickness) {
-          const middleShelfId = `${row}-${columnIndex}`;
-          positions.push({
-            id: middleShelfId,
-            row: row,
-            column: columnIndex,
-            x: centerX,
-            y: rowY,
-            z: 0,
-            width: colWidth,
-            height: thickness,
-            type: "middle",
-            isVirtual: false,
-            totalShelves: actualRows,
-            // Thêm thông tin từ config.shelves nếu có
-            ...(config.shelves && config.shelves[middleShelfId]
-              ? {
-                  isStandard: config.shelves[middleShelfId].isStandard || false,
-                  isReinforced:
-                    config.shelves[middleShelfId].isReinforced || false,
-                  isRemoved: config.shelves[middleShelfId].isRemoved || false,
-                }
-              : {}),
-          });
-        }
-      }
-
-      // Vẽ kệ ảo ở giữa các kệ thật
-      for (let row = 0; row < actualRows; row++) {
-        // Tính vị trí của kệ thật hiện tại
-        const currentShelfY =
-          row === 0
-            ? shelfBottomY + thickness / 2
-            : shelfBottomY + thickness + row * shelfSpacing;
-
-        // Tính vị trí của kệ thật tiếp theo
-        const nextShelfY =
-          row === actualRows - 1
-            ? shelfBottomY + colHeight - thickness / 2
-            : shelfBottomY + thickness + (row + 1) * shelfSpacing;
-
-        // Vị trí của kệ ảo nằm giữa hai kệ thật
-        const virtualShelfY = (currentShelfY + nextShelfY) / 2;
-        // Tính toán row thực tế cho kệ ảo
-        const virtualRow = row + 0.5;
-        // Tạo ID duy nhất cho kệ ảo
-        const virtualShelfId = `${virtualRow}-${columnIndex}-virtual`;
-
-        positions.push({
-          id: virtualShelfId,
-          row: virtualRow,
-          column: columnIndex,
-          x: centerX,
-          y: virtualShelfY,
-          z: 0,
-          width: colWidth,
-          height: thickness,
-          type: "virtual",
-          isVirtual: true,
-          totalShelves: actualRows,
-          // Thêm thông tin từ config.shelves nếu có
-          ...(config.shelves && config.shelves[virtualShelfId]
-            ? {
-                isStandard: config.shelves[virtualShelfId].isStandard || false,
-                isReinforced:
-                  config.shelves[virtualShelfId].isReinforced || false,
-                isRemoved: config.shelves[virtualShelfId].isRemoved || false,
-              }
-            : {}),
-        });
-      }
-    }
-
-    // Thêm các kệ đã chuyển từ ảo sang thật
-    for (let col = 0; col < columns; col++) {
-      const colWidth = getColumnWidth(col);
-      const colHeight = getColumnHeight(col);
-      const colX = getColumnXPosition(col);
-      const centerX = colX + colWidth / 2 + thickness / 2;
-      const shelfSpacing = cellHeight + thickness;
-      const actualRows = getNumberOfShelvesForColumn(col);
-
-      for (let row = 0.5; row < actualRows; row += 1) {
-        if (row % 1 !== 0) {
-          // Chỉ xét các hàng không phải số nguyên
-          if (isVirtualShelfConverted(row, col)) {
-            // Tính vị trí Y tương tự kệ ảo
-            const rowY = shelfBottomY + thickness / 2 + row * shelfSpacing;
-
-            // Chỉ thêm nếu nằm trong phạm vi chiều cao của cột
-            if (
-              rowY > shelfBottomY + thickness &&
-              rowY < shelfBottomY + colHeight - thickness
-            ) {
-              const convertedShelfId = `${row}-${col}`;
-              positions.push({
-                id: convertedShelfId,
-                row: row,
-                column: col,
-                x: centerX,
-                y: rowY,
-                z: 0,
-                width: colWidth,
-                height: thickness,
-                type: "converted",
-                isVirtual: false,
-                isConverted: true,
-                totalShelves: actualRows,
-                // Thêm thông tin từ config.shelves nếu có
-                ...(config.shelves && config.shelves[convertedShelfId]
-                  ? {
-                      isStandard:
-                        config.shelves[convertedShelfId].isStandard || false,
-                      isReinforced:
-                        config.shelves[convertedShelfId].isReinforced || false,
-                      isRemoved:
-                        config.shelves[convertedShelfId].isRemoved || false,
-                    }
-                  : {}),
-              });
-            }
-          }
-        }
-      }
-    }
+      positions.push(shelfPosition);
+    });
 
     return positions;
   };
-
   // Cập nhật vị trí kệ khi config thay đổi
   useEffect(() => {
-    // Bỏ qua nếu đang trong quá trình reset
-    if (hasResetRef.current) return;
-
     // Tính toán lại vị trí của tất cả các kệ
     const newPositions = calculateShelfPositions();
     setShelfPositions(newPositions);
 
+    // Bỏ qua nếu đang trong quá trình reset
+    if (hasResetRef.current) return;
     // Chỉ xóa selections khi KHÔNG ở texture mode
     if (!config.editShelf?.isOpenEditTexture) {
       // Xóa các kệ đã chọn khi cấu trúc thay đổi (chỉ khi không ở texture mode)
@@ -495,7 +360,7 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
     thickness,
   ]);
 
-  // Xử lý khi nhấp vào kệ - GIỮ NGUYÊN LOGIC CŨ
+  // Xử lý khi nhấp vào kệ
   const handleShelfClick = (shelfInfo: ShelfPosition) => {
     const shelfId = shelfInfo.id;
 
@@ -721,8 +586,8 @@ const ShelfHighlights: React.FC<ShelfHighlightsProps> = ({
           hoveredShelf={hoveredShelf}
           depth={depth}
           handleShelfClick={handleShelfClick}
-          isStandardOrReinforcedShelf={isStandardOrReinforcedShelf}
           hasResetRef={hasResetRef}
+          isStandardOrReinforcedShelf={isStandardOrReinforcedShelf}
         />
       ) : (
         <StandardReinforceModeComponent

@@ -29,12 +29,10 @@ const RemoveShelfComponent: React.FC = () => {
 
     // Xử lý từng kệ đã chọn để cập nhật trạng thái shelves
     selectedShelves.forEach((shelf) => {
-      // Xử lý kệ ảo
       if (shelf.isVirtual) {
-        // Format key cho kệ ảo
+        // CASE 1: Xử lý virtual shelf - chỉ đánh dấu removed
         const virtualKey = `${shelf.row}-${shelf.column}-virtual`;
 
-        // Đánh dấu kệ ảo là đã xóa
         if (!updatedShelves[virtualKey]) {
           updatedShelves[virtualKey] = {
             key: virtualKey,
@@ -50,37 +48,24 @@ const RemoveShelfComponent: React.FC = () => {
         updatedShelves[virtualKey].isRemoved = true;
         updatedShelves[virtualKey].isStandard = false;
         updatedShelves[virtualKey].isReinforced = false;
+      } else {
+        // CASE 2: Xử lý real shelf
+        const realKey = `${shelf.row}-${shelf.column}`;
+        const virtualKey = `${shelf.row}-${shelf.column}-virtual`;
 
-        return; // Không xử lý kệ thật nếu đây là kệ ảo
-      }
+        if (shelf.row % 1 !== 0) {
+          // CASE 2A: Real shelf tại vị trí virtual (0.5, 1.5, 2.5...)
+          // → Chuyển về virtual shelf
 
-      // Format key cho kệ thật
-      const shelfKey = `${shelf.row}-${shelf.column}`;
-      const virtualKey = `${shelf.row}-${shelf.column}-virtual`;
+          // Lưu thông tin cũ
+          const oldRealShelf = updatedShelves[realKey];
 
-      // Đánh dấu kệ hiện tại là đã xóa
-      if (!updatedShelves[shelfKey]) {
-        // Tạo mới nếu chưa tồn tại
-        updatedShelves[shelfKey] = {
-          key: shelfKey,
-          row: shelf.row,
-          column: shelf.column,
-          isVirtual: false,
-          isStandard: true,
-          isReinforced: false,
-          isRemoved: false,
-        };
-      }
+          // Xóa real shelf
+          if (updatedShelves[realKey]) {
+            delete updatedShelves[realKey];
+          }
 
-      // Đánh dấu kệ là đã xóa và không còn là kệ tiêu chuẩn hoặc tăng cường
-      updatedShelves[shelfKey].isRemoved = true;
-      updatedShelves[shelfKey].isStandard = false;
-      updatedShelves[shelfKey].isReinforced = false;
-
-      // Xử lý đặc biệt với kệ nửa hàng thật
-      if (shelf.row % 1 !== 0) {
-        if (!updatedShelves[virtualKey]) {
-          // Tạo mới kệ ảo nếu chưa tồn tại
+          // Tạo virtual shelf mới
           updatedShelves[virtualKey] = {
             key: virtualKey,
             row: shelf.row,
@@ -89,13 +74,31 @@ const RemoveShelfComponent: React.FC = () => {
             isStandard: false,
             isReinforced: false,
             isRemoved: false,
+            // Preserve texture nếu có
+            ...(oldRealShelf?.texture && { texture: oldRealShelf.texture }),
           };
-        }
+        } else {
+          // CASE 2B: Real shelf tại vị trí standard (0, 1, 2...)
+          // → Chỉ đánh dấu removed (không thể xóa hoàn toàn)
 
-        // Đánh dấu kệ ảo tương ứng là đã xóa
-        updatedShelves[virtualKey].isRemoved = true;
-        updatedShelves[virtualKey].isStandard = false;
-        updatedShelves[virtualKey].isReinforced = false;
+          if (!updatedShelves[realKey]) {
+            // Tạo mới nếu chưa tồn tại (case edge)
+            updatedShelves[realKey] = {
+              key: realKey,
+              row: shelf.row,
+              column: shelf.column,
+              isVirtual: false,
+              isStandard: false,
+              isReinforced: false,
+              isRemoved: true,
+            };
+          } else {
+            // Cập nhật shelf hiện có
+            updatedShelves[realKey].isRemoved = true;
+            updatedShelves[realKey].isStandard = false;
+            updatedShelves[realKey].isReinforced = false;
+          }
+        }
       }
     });
 

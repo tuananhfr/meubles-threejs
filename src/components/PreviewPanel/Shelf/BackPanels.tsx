@@ -3,7 +3,6 @@ import * as THREE from "three";
 import { useLoader } from "@react-three/fiber";
 import { useConfig } from "../../context/ConfigContext";
 import { useBackPanelManager } from "../../../hooks/useBackPanelManager";
-import taupeTexture from "../../../assets/images/samples-wenge-wood-effect-800x800.jpg";
 
 const BackPanels: React.FC<BackPanelsProps> = ({
   columns,
@@ -17,7 +16,7 @@ const BackPanels: React.FC<BackPanelsProps> = ({
   getColumnXPosition,
 }) => {
   const { config, batchUpdate } = useConfig();
-  const defaultTexture = useLoader(THREE.TextureLoader, taupeTexture);
+
   const { syncBackPanels } = useBackPanelManager();
 
   // Load tất cả textures được sử dụng
@@ -47,25 +46,25 @@ const BackPanels: React.FC<BackPanelsProps> = ({
     const map = new Map<string, THREE.Texture>();
 
     usedTextureSrcs.forEach((src, index) => {
-      map.set(src, loadedTextures[index] || defaultTexture);
+      map.set(src, loadedTextures[index]);
     });
 
     return map;
-  }, [usedTextureSrcs, loadedTextures, defaultTexture]);
+  }, [usedTextureSrcs, loadedTextures]);
 
   // Helper function để lấy texture cho panel
-  const getTextureForPanel = (panel: BackPanelsData): THREE.Texture => {
+  const getTextureForPanel = (
+    panel: BackPanelsData
+  ): THREE.Texture | undefined => {
     // Nếu panel có texture riêng, sử dụng texture đó
     if (panel.texture?.src) {
       return (
-        textureMap.get(panel.texture.src) ||
-        textureMap.get(config.texture.src) ||
-        defaultTexture
+        textureMap.get(panel.texture.src) || textureMap.get(config.texture.src)
       );
     }
 
     // Nếu không có texture riêng, sử dụng texture của config
-    return textureMap.get(config.texture.src) || defaultTexture;
+    return textureMap.get(config.texture.src);
   };
 
   useEffect(() => {
@@ -125,7 +124,7 @@ const BackPanels: React.FC<BackPanelsProps> = ({
             config.backPanels && config.backPanels[panelKey];
           let isRemoved = true;
           let permanentlyDeleted = false;
-          let texture = existingPanel?.texture; // Giữ lại texture nếu có
+          const texture = existingPanel?.texture; // Giữ lại texture nếu có
 
           if (existingPanel) {
             isRemoved = existingPanel.isRemoved;

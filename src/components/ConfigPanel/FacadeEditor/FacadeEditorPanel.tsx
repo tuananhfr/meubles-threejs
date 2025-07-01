@@ -28,7 +28,7 @@ const FacadeEditorPanel: React.FC = () => {
    */
   const removeOverlappingFacades = (
     updatedFacadePanels: Record<string, FacadeData>,
-    selectedFacadeGroups: any[]
+    selectedFacadeGroups: FacadeData[][]
   ) => {
     Object.keys(updatedFacadePanels).forEach((key) => {
       const panel = updatedFacadePanels[key];
@@ -76,7 +76,7 @@ const FacadeEditorPanel: React.FC = () => {
    */
   const createNewFacades = (
     updatedFacadePanels: Record<string, FacadeData>,
-    selectedFacadeGroups: any[]
+    selectedFacadeGroups: FacadeData[][]
   ) => {
     const newlyAddedFacades: FacadeData[] = [];
 
@@ -114,7 +114,7 @@ const FacadeEditorPanel: React.FC = () => {
    * Tạo một facade hợp nhất từ nhiều panel
    */
   const createMergedFacade = (
-    facadeGroup: any[],
+    facadeGroup: FacadeData[],
     groupIndex: number
   ): FacadeData => {
     // Sắp xếp panels theo vị trí Y
@@ -828,6 +828,7 @@ const FacadeEditorPanel: React.FC = () => {
         <BackButton onClick={handleBackClick} />
       </div>
       {renderContent()}
+      <div id="facade-panel-bottom"></div>
     </div>
   );
 };

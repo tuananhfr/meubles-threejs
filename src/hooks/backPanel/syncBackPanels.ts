@@ -1,6 +1,46 @@
 import { createBackPanel } from "./utils";
 
 /**
+ * Hàm helper để lấy trạng thái từ row số nguyên cho row thập phân
+ */
+const getStateFromIntegerRow = (
+  panelKey: string,
+  column: number,
+  currentRow: number,
+  backPanels: Record<string, BackPanelsData>,
+  stateKey: "isRemoved" | "permanentlyDeleted"
+) => {
+  // Kiểm tra nếu row hiện tại là số thập phân
+  if (currentRow % 1 !== 0) {
+    // Tạo key cho row số nguyên tương ứng
+    const integerRow = Math.floor(currentRow);
+    const integerPanelKey = `back-panel-${integerRow}-${column}`;
+
+    // Nếu panel số nguyên tồn tại, lấy trạng thái từ đó
+    if (
+      backPanels &&
+      backPanels[integerPanelKey] &&
+      backPanels[integerPanelKey][stateKey] !== undefined
+    ) {
+      return backPanels[integerPanelKey][stateKey];
+    }
+  }
+
+  // Nếu không phải số thập phân hoặc không tìm thấy panel số nguyên,
+  // thì lấy trạng thái từ chính panel hiện tại (nếu có)
+  if (
+    backPanels &&
+    backPanels[panelKey] &&
+    backPanels[panelKey][stateKey] !== undefined
+  ) {
+    return backPanels[panelKey][stateKey];
+  }
+
+  // Trả về giá trị mặc định
+  return stateKey === "isRemoved" ? true : false;
+};
+
+/**
  * Cập nhật tất cả back panel dựa trên trạng thái hiện tại của các shelf
  */
 export const syncBackPanelsWithShelves = (
@@ -72,25 +112,28 @@ export const syncBackPanelsWithShelves = (
         const backPanelZ = -depth / 2 + thickness / 2 + 0.0001;
 
         // Tạo key cho panel: sử dụng row của shelf hiện tại
+        // Giữ nguyên giá trị row không làm tròn vì có thể là số thập phân
         const panelKey = `back-panel-${currentShelf.row}-${column}`;
 
-        // Giữ lại trạng thái isRemoved nếu panel đã tồn tại
-        let isRemoved = true; // Mặc định hiển thị panel
-        if (backPanels && backPanels[panelKey]) {
-          isRemoved = backPanels[panelKey].isRemoved;
-        }
+        // Sử dụng hàm helper để lấy trạng thái
+        // Row thập phân sẽ kế thừa trạng thái từ row số nguyên tương ứng
+        const isRemoved = getStateFromIntegerRow(
+          panelKey,
+          column,
+          currentShelf.row,
+          backPanels,
+          "isRemoved"
+        );
 
-        // Lấy giá trị permanentlyDeleted nếu có
-        let permanentlyDeleted = false;
-        if (
-          backPanels &&
-          backPanels[panelKey] &&
-          backPanels[panelKey].permanentlyDeleted !== undefined
-        ) {
-          permanentlyDeleted = backPanels[panelKey].permanentlyDeleted;
-        }
+        const permanentlyDeleted = getStateFromIntegerRow(
+          panelKey,
+          column,
+          currentShelf.row,
+          backPanels,
+          "permanentlyDeleted"
+        );
 
-        //  Giữ lại texture nếu panel đã tồn tại
+        // Texture vẫn giữ logic cũ (không cần kế thừa từ row số nguyên)
         let existingTexture = undefined;
         if (
           backPanels &&
@@ -111,7 +154,7 @@ export const syncBackPanelsWithShelves = (
           permanentlyDeleted
         );
 
-        //  Gán lại texture sau khi tạo panel
+        // Gán lại texture sau khi tạo panel
         if (existingTexture) {
           newPanel.texture = existingTexture;
         }

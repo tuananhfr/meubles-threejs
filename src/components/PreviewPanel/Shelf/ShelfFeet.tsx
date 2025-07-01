@@ -6,8 +6,9 @@ const ShelfFeet: React.FC<{
   totalWidth: number;
   depth: number;
   shelfBottomY: number;
-  texture: THREE.Texture; // Texture mặc định nếu không có texture riêng
-}> = ({ totalWidth, depth, shelfBottomY, texture }) => {
+  texture: THREE.Texture;
+  thickness: number;
+}> = ({ totalWidth, depth, shelfBottomY, texture, thickness }) => {
   const { config } = useConfig();
   const feetType = config.editFeet?.feetType || "sans_pieds";
   const feetHeight = config.editFeet?.heightFeet || 0;
@@ -51,16 +52,16 @@ const ShelfFeet: React.FC<{
   const feetDimensions = {
     design: {
       // Chân "design" giờ là một thanh dài ở giữa
-      width: totalWidth - 0.1, // 8cm chiều rộng của thanh dọc theo trục X
+      width: totalWidth - 0.08, // 8cm chiều rộng của thanh dọc theo trục X
       height: feetHeight / 100, // Chiều cao (cm -> THREE.js)
       depth: depth - 0.1, // Chiều dài của thanh dọc theo trục Z (gần bằng chiều sâu của kệ)
       geometry: "box",
       style: "center_bar", // Kiểu thanh giữa
     },
     classic: {
-      width: 0.05, // 5cm
+      width: 0.08, // 8cm
       height: feetHeight / 100,
-      depth: 0.05,
+      depth: 0.08,
       geometry: "box",
       style: "foot", // Kiểu chân riêng lẻ
     },
@@ -97,25 +98,25 @@ const ShelfFeet: React.FC<{
   const feetPositions = [
     // Chân trước bên trái
     {
-      x: -totalWidth / 2 + dimensions.width / 2,
+      x: -totalWidth / 2 + dimensions.width / 2 - thickness / 2,
       y: feetPositionY,
       z: depth / 2 - dimensions.depth / 2,
     },
     // Chân trước bên phải
     {
-      x: totalWidth / 2 - dimensions.width / 2,
+      x: totalWidth / 2 - dimensions.width / 2 + thickness / 2,
       y: feetPositionY,
       z: depth / 2 - dimensions.depth / 2,
     },
     // Chân sau bên trái
     {
-      x: -totalWidth / 2 + dimensions.width / 2,
+      x: -totalWidth / 2 + dimensions.width / 2 - thickness / 2,
       y: feetPositionY,
       z: -depth / 2 + dimensions.depth / 2,
     },
     // Chân sau bên phải
     {
-      x: totalWidth / 2 - dimensions.width / 2,
+      x: totalWidth / 2 - dimensions.width / 2 + thickness / 2,
       y: feetPositionY,
       z: -depth / 2 + dimensions.depth / 2,
     },

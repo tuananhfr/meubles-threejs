@@ -27,33 +27,66 @@ const ReinforcedShelfComponent: React.FC = () => {
 
     // Xử lý từng kệ đã chọn
     selectedShelves.forEach((shelf) => {
-      // Format keys
       const row = shelf.row;
       const column = shelf.column;
 
-      // Xác định key cần cập nhật
-      const keyToUpdate = shelf.isVirtual
-        ? `${row}-${column}-virtual` // Nếu là kệ ảo, cập nhật kệ ảo
-        : `${row}-${column}`; // Nếu là kệ thật, cập nhật kệ thật
+      if (shelf.isVirtual) {
+        // CASE 1: Chuyển đổi shelf ảo thành shelf thật
+        const oldVirtualKey = `${row}-${column}-virtual`;
+        const newRealKey = `${row}-${column}`;
 
-      // Đảm bảo kệ tồn tại
-      if (!updatedShelves[keyToUpdate]) {
-        updatedShelves[keyToUpdate] = {
-          key: keyToUpdate,
-          row: row,
-          column: column,
-          isVirtual: false,
-          isStandard: false,
-          isReinforced: false,
-          isRemoved: false,
-        };
+        // Lưu lại thông tin của shelf ảo cũ (nếu cần preserve một số thuộc tính)
+        const oldShelfData = updatedShelves[oldVirtualKey];
+
+        // Xóa shelf ảo cũ
+        if (updatedShelves[oldVirtualKey]) {
+          delete updatedShelves[oldVirtualKey];
+        }
+
+        // Kiểm tra xem shelf thật đã tồn tại chưa
+        if (updatedShelves[newRealKey]) {
+          // Nếu đã tồn tại, chỉ cập nhật thuộc tính
+          updatedShelves[newRealKey].isVirtual = false;
+          updatedShelves[newRealKey].isStandard = false;
+          updatedShelves[newRealKey].isReinforced = true;
+          updatedShelves[newRealKey].isRemoved = false;
+        } else {
+          // Tạo shelf thật mới
+          updatedShelves[newRealKey] = {
+            key: newRealKey,
+            row: row,
+            column: column,
+            isVirtual: false,
+            isStandard: false,
+            isReinforced: true,
+            isRemoved: false,
+            // Preserve texture nếu shelf ảo cũ có texture
+            ...(oldShelfData?.texture && { texture: oldShelfData.texture }),
+          };
+        }
+      } else {
+        // CASE 2: Cập nhật shelf thật hiện có
+        const realKey = `${row}-${column}`;
+
+        // Đảm bảo shelf thật tồn tại
+        if (!updatedShelves[realKey]) {
+          updatedShelves[realKey] = {
+            key: realKey,
+            row: row,
+            column: column,
+            isVirtual: false,
+            isStandard: false,
+            isReinforced: false,
+            isRemoved: false,
+          };
+        }
+
+        // Cập nhật thuộc tính để thành standard shelf
+        updatedShelves[realKey].isVirtual = false;
+        updatedShelves[realKey].isStandard = true;
+        updatedShelves[realKey].isReinforced = false;
+        updatedShelves[realKey].isRemoved = false;
       }
-
-      // Cập nhật các thuộc tính
-      updatedShelves[keyToUpdate].isVirtual = false;
-      updatedShelves[keyToUpdate].isStandard = false;
-      updatedShelves[keyToUpdate].isReinforced = true;
-      updatedShelves[keyToUpdate].isRemoved = false;
     });
 
     // Sử dụng hook useBackPanelManager để xử lý backPanels

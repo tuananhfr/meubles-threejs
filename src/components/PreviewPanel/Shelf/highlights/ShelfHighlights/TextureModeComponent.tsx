@@ -7,7 +7,7 @@ const TextureModeComponent: React.FC<TextureModeComponentProps> = ({
   hoveredShelf,
   depth,
   handleShelfClick,
-  hasResetRef,
+
   isStandardOrReinforcedShelf,
 }) => {
   const filteredShelves = useMemo(() => {
@@ -46,7 +46,6 @@ const TextureModeComponent: React.FC<TextureModeComponentProps> = ({
             <mesh
               position={[shelf.x, shelf.y, 0]}
               onClick={(e) => {
-                if (hasResetRef.current) return;
                 handleShelfClick(shelf);
                 e.stopPropagation();
               }}
@@ -65,7 +64,6 @@ const TextureModeComponent: React.FC<TextureModeComponentProps> = ({
             <group
               position={[shelf.x, shelf.y, depth / 2 + 0.01]}
               onClick={(e) => {
-                if (hasResetRef.current) return;
                 handleShelfClick(shelf);
                 e.stopPropagation();
               }}

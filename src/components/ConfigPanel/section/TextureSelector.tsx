@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useConfig } from "../../context/ConfigContext";
 import { shelfToKey } from "../../../utils/shelfUtils";
 
@@ -15,6 +15,31 @@ interface TextureSelectorProps {
 
 const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
   const { config, updateConfig } = useConfig();
+  const [hoveredTexture, setHoveredTexture] = useState<{
+    name: string;
+    src: string;
+    x: number;
+    y: number;
+  } | null>(null);
+
+  // Hàm xử lý mouse enter để hiển thị tooltip
+  const handleMouseEnter = (
+    event: React.MouseEvent,
+    texture: { name: string; src: string }
+  ) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setHoveredTexture({
+      name: texture.name,
+      src: texture.src,
+      x: rect.left + rect.width / 2,
+      y: rect.top - 10,
+    });
+  };
+
+  // Hàm xử lý mouse leave để ẩn tooltip
+  const handleMouseLeave = () => {
+    setHoveredTexture(null);
+  };
 
   // Hàm để lấy tất cả các texture đang được sử dụng trong toàn bộ kệ
   const getAllUsedTextures = useMemo(() => {
@@ -342,7 +367,7 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
                 });
 
                 // Chuyển về tab "entier"
-                updateConfig("activeView", "Étagère entière");
+                updateConfig("activeView", "");
               }, 100); // Delay nhỏ để texture được apply trước
             }
           },
@@ -383,7 +408,7 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
                 });
 
                 // Chuyển về tab "entier"
-                updateConfig("activeView", "Étagère entière");
+                updateConfig("activeView", "");
               }, 100); // Delay nhỏ để texture được apply trước
             }
           },
@@ -427,7 +452,7 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
                 });
 
                 // Chuyển về tab "entier"
-                updateConfig("activeView", "Étagère entière");
+                updateConfig("activeView", "");
               }, 100); // Delay nhỏ để texture được apply trước
             }
           },
@@ -474,7 +499,7 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
                 });
 
                 // Chuyển về tab "entier"
-                updateConfig("activeView", "Étagère entière");
+                updateConfig("activeView", "");
               }, 100); // Delay nhỏ để texture được apply trước
             }
           },
@@ -870,117 +895,146 @@ const TextureSelector: React.FC<TextureSelectorProps> = ({ type }) => {
           type !== "facade" &&
           type !== "backboard")) && (
         <div className="d-flex flex-wrap">
-          {list.map((texture, index) => {
-            const isActive = isTextureActiveForSelected(texture.src);
-            const shelfCount =
-              type === "tablette" ? countShelvesUsingTexture(texture.src) : 0;
-            const panelCount =
-              type === "vertical" ? countPanelsUsingTexture(texture.src) : 0;
-            const facadeCount =
-              type === "facade" ? countFacadesUsingTexture(texture.src) : 0;
-            const backboardCount =
-              type === "backboard"
-                ? countBackboardsUsingTexture(texture.src)
-                : 0;
+          {list!.length > 0 &&
+            list!.map((texture, index) => {
+              const isActive = isTextureActiveForSelected(texture.src);
+              const shelfCount =
+                type === "tablette" ? countShelvesUsingTexture(texture.src) : 0;
+              const panelCount =
+                type === "vertical" ? countPanelsUsingTexture(texture.src) : 0;
+              const facadeCount =
+                type === "facade" ? countFacadesUsingTexture(texture.src) : 0;
+              const backboardCount =
+                type === "backboard"
+                  ? countBackboardsUsingTexture(texture.src)
+                  : 0;
 
-            // Lấy thông tin về components sử dụng texture cho "entier"
-            const entierInfo: EntierInfo =
-              type === "entier"
-                ? countComponentsUsingTextureForEntier(texture.src)
-                : { count: 0, details: [] };
+              // Lấy thông tin về components sử dụng texture cho "entier"
+              const entierInfo: EntierInfo =
+                type === "entier"
+                  ? countComponentsUsingTextureForEntier(texture.src)
+                  : { count: 0, details: [] };
 
-            return (
-              <div key={index} className="position-relative">
-                <button
-                  onClick={() => updateFn(texture.name, texture.src)}
-                  className={`btn p-0 m-1 border rounded-2 position-relative ${
-                    isActive
-                      ? "border-primary border-3"
-                      : "border-secondary border-1"
-                  }`}
-                  style={{
-                    width: 40,
-                    height: 40,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "#fff",
-                    boxShadow: isActive
-                      ? "0 0 8px rgba(0,123,255,0.3)"
-                      : "none",
-                  }}
-                  title={`${texture.name}${
-                    type === "entier" && entierInfo.count > 0
-                      ? ` (${entierInfo.details.join(", ")})`
-                      : type === "tablette" && shelfCount > 0
-                      ? ` (utilisée par ${shelfCount} étagère${
-                          shelfCount > 1 ? "s" : ""
-                        })`
-                      : type === "vertical" && panelCount > 0
-                      ? ` (utilisée par ${panelCount} panneau${
-                          panelCount > 1 ? "x" : ""
-                        })`
-                      : type === "facade" && facadeCount > 0
-                      ? ` (utilisée par ${facadeCount} façade${
-                          facadeCount > 1 ? "s" : ""
-                        })`
-                      : type === "backboard" && backboardCount > 0
-                      ? ` (utilisée par ${backboardCount} fond${
-                          backboardCount > 1 ? "s" : ""
-                        })`
-                      : ""
-                  }`}
-                >
-                  <img
-                    src={texture.src}
-                    alt={texture.name}
-                    className="rounded-1"
+              return (
+                <div key={index} className="position-relative">
+                  <button
+                    onClick={() => updateFn(texture.name, texture.src)}
+                    onMouseEnter={(e) => handleMouseEnter(e, texture)}
+                    onMouseLeave={handleMouseLeave}
+                    className={`btn p-0 m-1 border rounded-2 position-relative ${
+                      isActive
+                        ? "border-primary border-3"
+                        : "border-secondary border-1"
+                    }`}
                     style={{
-                      width: 32,
-                      height: 32,
-                      objectFit: "cover",
-                      opacity: isActive ? 1 : 0.8,
+                      width: 40,
+                      height: 40,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: "#fff",
+                      boxShadow: isActive
+                        ? "0 0 8px rgba(0,123,255,0.3)"
+                        : "none",
                     }}
-                  />
-
-                  {/* Hiển thị indicator khi texture đang được sử dụng */}
-                  {isActive && (
-                    <div
-                      className="position-absolute top-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
-                      style={{
-                        width: 16,
-                        height: 16,
-                        fontSize: 10,
-                        transform: "translate(25%, -25%)",
-                      }}
-                    >
-                      {type === "entier" && entierInfo.count > 0
-                        ? entierInfo.count > 9
-                          ? "9+"
-                          : entierInfo.count
+                    title={`${texture.name}${
+                      type === "entier" && entierInfo.count > 0
+                        ? ` (${entierInfo.details.join(", ")})`
                         : type === "tablette" && shelfCount > 0
-                        ? shelfCount > 9
-                          ? "9+"
-                          : shelfCount
+                        ? ` (utilisée par ${shelfCount} étagère${
+                            shelfCount > 1 ? "s" : ""
+                          })`
                         : type === "vertical" && panelCount > 0
-                        ? panelCount > 9
-                          ? "9+"
-                          : panelCount
+                        ? ` (utilisée par ${panelCount} panneau${
+                            panelCount > 1 ? "x" : ""
+                          })`
                         : type === "facade" && facadeCount > 0
-                        ? facadeCount > 9
-                          ? "9+"
-                          : facadeCount
+                        ? ` (utilisée par ${facadeCount} façade${
+                            facadeCount > 1 ? "s" : ""
+                          })`
                         : type === "backboard" && backboardCount > 0
-                        ? backboardCount > 9
-                          ? "9+"
-                          : backboardCount
-                        : "✓"}
-                    </div>
-                  )}
-                </button>
-              </div>
-            );
-          })}
+                        ? ` (utilisée par ${backboardCount} fond${
+                            backboardCount > 1 ? "s" : ""
+                          })`
+                        : ""
+                    }`}
+                  >
+                    <img
+                      src={texture.src}
+                      alt={texture.name}
+                      className="rounded-1"
+                      style={{
+                        width: 32,
+                        height: 32,
+                        objectFit: "cover",
+                        opacity: isActive ? 1 : 0.8,
+                      }}
+                    />
+
+                    {/* Hiển thị indicator khi texture đang được sử dụng */}
+                    {isActive && (
+                      <div
+                        className="position-absolute top-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                        style={{
+                          width: 16,
+                          height: 16,
+                          fontSize: 10,
+                          transform: "translate(25%, -25%)",
+                        }}
+                      >
+                        {type === "entier" && entierInfo.count > 0
+                          ? entierInfo.count > 9
+                            ? "9+"
+                            : entierInfo.count
+                          : type === "tablette" && shelfCount > 0
+                          ? shelfCount > 9
+                            ? "9+"
+                            : shelfCount
+                          : type === "vertical" && panelCount > 0
+                          ? panelCount > 9
+                            ? "9+"
+                            : panelCount
+                          : type === "facade" && facadeCount > 0
+                          ? facadeCount > 9
+                            ? "9+"
+                            : facadeCount
+                          : type === "backboard" && backboardCount > 0
+                          ? backboardCount > 9
+                            ? "9+"
+                            : backboardCount
+                          : "✓"}
+                      </div>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+        </div>
+      )}
+      {hoveredTexture && (
+        <div
+          className="position-fixed bg-dark text-white p-2 rounded shadow-lg"
+          style={{
+            left: hoveredTexture.x - 150,
+            top: hoveredTexture.y - 250,
+            zIndex: 9999,
+            pointerEvents: "none",
+            minWidth: "300px",
+          }}
+        >
+          <div className="text-center">
+            <img
+              src={hoveredTexture.src}
+              alt={hoveredTexture.name}
+              className="rounded mb-2"
+              style={{
+                width: "100%",
+                height: 200,
+                objectFit: "cover",
+              }}
+            />
+            <div className="small fw-bold">{hoveredTexture.name}</div>
+          </div>
         </div>
       )}
     </div>

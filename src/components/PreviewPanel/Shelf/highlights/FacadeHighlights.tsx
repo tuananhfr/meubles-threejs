@@ -1,4 +1,3 @@
-// components/3D/highlights/FacadeHighlights.tsx
 import React, { useState, useEffect, useMemo } from "react";
 import { Text } from "@react-three/drei";
 import { ThreeEvent } from "@react-three/fiber";
@@ -19,6 +18,21 @@ const FacadeHighlights: React.FC = () => {
     getColumnHeight,
     getColumnXPosition,
   } = useShelfCalculations();
+
+  // Helper function để auto scroll xuống cuối
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      const element = document.getElementById("facade-panel-bottom");
+
+      if (element) {
+        // Scroll đến element trước
+        element.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
+      }
+    }, 100);
+  };
 
   // Xác định chế độ hiện tại
   const isRetireMode =
@@ -127,7 +141,7 @@ const FacadeHighlights: React.FC = () => {
             key: panelKey,
             row: currentRow,
             column: col,
-            position: [centerX, cellY, depth / 2 + thickness / 2], // Mặt trước của kệ
+            position: [centerX, cellY, depth / 2 - thickness / 2], // Mặt trước của kệ
             dimensions: [colWidth, panelHeight, facadeThickness],
             material: config.texture.name,
           };
@@ -287,6 +301,9 @@ const FacadeHighlights: React.FC = () => {
           [panel], // Thêm panel đơn lẻ vào danh sách
         ],
       });
+
+      // Auto scroll xuống cuối khi chọn facade mới
+      scrollToBottom();
     }
   };
 
@@ -338,6 +355,9 @@ const FacadeHighlights: React.FC = () => {
           facadePanels, // Thêm nhóm panel mới vào danh sách
         ],
       });
+
+      // Auto scroll xuống cuối khi chọn facade mới
+      scrollToBottom();
     }
   };
 

@@ -2,6 +2,7 @@
 import { ReactNode, useState, useEffect } from "react";
 import { ConfigContext } from "./ConfigContext";
 import oakTexture from "../../assets/images/samples-oak-wood-effect-800x800.jpg";
+
 import walnutTexture from "../../assets/images/samples-walnut-wood-effect-800x800.jpg";
 import wengeTexture from "../../assets/images/samples-wenge-wood-effect-800x800.jpg";
 import whiteTexture from "../../assets/images/white_u11209.jpg";
@@ -138,7 +139,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
     },
     thickness: initialThickness,
     position: "Au sol",
-    activeView: "Étagère entière",
+    activeView: "",
     columns: initialColumns,
     rows: initialRows,
     texture: textures[0],
@@ -190,6 +191,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
       selectedBackboard: [],
     },
     editVerticalPanels: {
+      // ADDED: Edit state cho vertical panels
       isOpenEditTexture: false,
       selectedPanels: [],
     },
@@ -418,7 +420,7 @@ const ConfigProvider = ({ children }: ConfigProviderProps) => {
               prevConfig.columnHeights[0] || prevConfig.height; // Dùng chiều cao của cột đầu tiên hoặc chiều cao tổng
           }
         } else if (columnsToAdd < 0) {
-          // BỚT CỘT: Xóa các cột cuối
+          // Xóa các cột cuối
           for (let i = newColumns; i < prevConfig.columns; i++) {
             delete updatedColumnWidths[i];
             delete updatedColumnHeights[i];

@@ -5,6 +5,15 @@ import ActionButtons from "./components/Button/ActionButtons";
 import PriceSection from "./components/ConfigPanel/section/PriceSection";
 
 function App() {
+  setTimeout(() => {
+    const element = document.getElementById("shelf-3d-root");
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, 100);
   return (
     <div className="container-fluid d-flex flex-column vh-100">
       {/* Main content area */}
@@ -59,7 +68,7 @@ function App() {
         </div>
       </div>
 
-      {/* Bottom bar - Responsive - SOLUTION: Une seule ligne avec flexbox */}
+      {/* Bottom bar - Responsive  */}
       <div
         className="border-top bg-light flex-shrink-0 d-flex align-items-center justify-content-between px-3 py-2"
         style={{ minHeight: "70px" }}

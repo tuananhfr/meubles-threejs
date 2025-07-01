@@ -17,9 +17,9 @@ const ShelfEditorPanel: React.FC = () => {
       case "sans_pieds":
         return 0;
       case "design":
-        return 6;
-      case "classic":
         return 4;
+      case "classic":
+        return 2;
       default:
         return 0;
     }

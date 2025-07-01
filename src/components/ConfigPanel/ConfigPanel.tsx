@@ -23,12 +23,11 @@ const ConfigPanel: React.FC = () => {
     config.editFacade?.isOpenMenu ||
     config.editBackboard?.isOpenMenu;
 
-  // Reset activeView to "Étagère entière" when any editor menu opens
+  // Reset activeView to "" when any editor menu opens
   React.useEffect(() => {
-    if (isAnyEditorMenuOpen && config.activeView !== "Étagère entière") {
-      const updates: ConfigState = {
-        ...config,
-        activeView: "Étagère entière",
+    if (isAnyEditorMenuOpen && config.activeView !== "") {
+      const updates: any = {
+        activeView: "",
       };
 
       // Reset texture editing states
@@ -69,7 +68,7 @@ const ConfigPanel: React.FC = () => {
 
       batchUpdate(updates);
     }
-  }, [isAnyEditorMenuOpen, config.activeView, batchUpdate, config]);
+  }, [isAnyEditorMenuOpen, config.activeView, batchUpdate]);
 
   // Logic để hiển thị menu chính
   const isMainMenuOpen = !isAnyEditorMenuOpen;

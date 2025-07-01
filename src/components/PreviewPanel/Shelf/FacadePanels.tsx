@@ -16,7 +16,6 @@ const FacadePanels: React.FC<FacadePanelsProps> = ({
   texture,
 }) => {
   const { config } = useConfig();
-
   // State để lưu texture cho các facade panel riêng lẻ
   const [panelTextures, setPanelTextures] = useState<
     Record<string, THREE.Texture>
@@ -233,8 +232,8 @@ const FacadePanels: React.FC<FacadePanelsProps> = ({
 
     const currentPosition = drawerGroup.position.z;
     const targetPosition = opening
-      ? depth / 2 + thickness / 2 + depth * 0.4
-      : depth / 2 + thickness / 2;
+      ? depth / 2 - thickness / 2 + depth * 0.4
+      : depth / 2 - thickness / 2;
 
     if (Math.abs(currentPosition - targetPosition) < 0.001) return;
 

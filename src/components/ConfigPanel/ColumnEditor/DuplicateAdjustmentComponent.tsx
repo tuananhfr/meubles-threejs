@@ -28,7 +28,7 @@ const DuplicateColumnComponent: React.FC = () => {
       newColumnWidths[colIndex + 1] = sourceWidth;
       newColumnHeights[colIndex + 1] = sourceHeight;
 
-      // Tính toán width mới **
+      // Tính toán width mới
       const newColumns = config.columns + 1;
 
       // Hàm tính width tổng (giống như trong ConfigProvider)
@@ -185,6 +185,7 @@ const DuplicateColumnComponent: React.FC = () => {
       };
 
       // 7. Cập nhật tất cả các trạng thái cùng một lúc để tránh render nhiều lần
+
       batchUpdate({
         width: newWidth,
         columnWidths: newColumnWidths,

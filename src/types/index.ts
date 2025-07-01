@@ -1,6 +1,5 @@
 import { JSX } from "react";
 import * as THREE from "three";
-import type { OrbitControls } from "three-stdlib";
 declare global {
   // Định nghĩa kiểu cho context
   interface ConfigContextType {
@@ -161,12 +160,6 @@ declare global {
       y: number;
       z: number;
     };
-  }
-
-  export interface ShelfPosition {
-    x: number;
-    y: number;
-    z: number;
   }
 
   // Base interface chứa các thuộc tính chung
@@ -418,11 +411,69 @@ declare global {
     thickness: number;
     texture: Texture;
   }
+  export interface ThreeDPreviewHandle {
+    downloadCanvas: () => void;
+  }
 
   interface Window {
     __THREE_SCENE__?: THREE.Scene | null;
     __THREE_CAMERA__?: THREE.Camera | null;
     __THREE_CONTROLS__?: OrbitControls | null;
+    __THREE_SCENE_CONFIG__?: SceneConfig;
+    drupalSettings?: DrupalSettings;
+  }
+
+  interface SavedDesign {
+    id: number;
+    name: string;
+    image_fid?: number;
+    glb_fid?: number;
+    image_filename?: string;
+    glb_filename?: string;
+    image_url?: string;
+    glb_url?: string;
+    created?: number;
+    updated?: number;
+    created_at?: string;
+    has_files?: boolean;
+  }
+
+  interface SceneConfig {
+    [key: string]: string | number | boolean | null | undefined;
+  }
+
+  interface DesignData {
+    name: string;
+    image_data: string;
+    glb_data: string;
+    image_filename: string;
+    glb_filename: string;
+    scene_config?: SceneConfig;
+    created_at: string;
+  }
+
+  interface OrbitControls {
+    update: () => void;
+    target: THREE.Vector3;
+    enableDamping?: boolean;
+    dampingFactor?: number;
+  }
+
+  interface Shelf3DBlockSettings {
+    containerId: string;
+    createProductUrl: string;
+    fileUploadUrl: string;
+    taxonomyBaseUrl: string;
+  }
+
+  interface Shelf3DSettings {
+    product_id: string;
+    config_3d: ConfigState;
+  }
+
+  interface DrupalSettings {
+    shelf3d_block: Shelf3DBlockSettings;
+    shelf3d: Shelf3DSettings;
   }
 }
 
